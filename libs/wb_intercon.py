@@ -1,16 +1,11 @@
-#not /usr/bin/env python
+#! /usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-import configparser
-
-# add custom libraries
-path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'libs'))
-if not path in sys.path:
-    print(path)
-    sys.path.insert(1, path)
-del path
-
-from wb_file_manager import WishboneMaster,WishboneSlave
+# standard
+import os
+import sys
+# custom
+from wb_component import *
 
 ''' this programm offers functions to read wishbone config iles
 and generate an intercon in vhdl '''
@@ -39,6 +34,22 @@ in this state of development one master object and slave objects '''
         self.__master = None
         self.__slaves = set()
 
+    def __str__(self):
+        strrepr = "------------------ Intercon ------------------"\
+                + "\nAmount of TGA bits: "+str(self.__tgabits)\
+                + "\nAmount of TGC bits: "+str(self.__tgcbits)\
+                + "\nAmount of TGD bits: "+str(self.__tgdbits)\
+                + "\nSize of Databus: "+str(self.__databuswidth)\
+                + "\nSize of Addressbus: "+str(self.__addressbuswidth)
+
+        if self.__master != None:
+            strrepr += "\n"+str(self.__master)
+
+        for slave in self.__slaves:
+            strrepr += "\n"+str(self.__slave)
+
+        return strrepr.replace("None", "Not defined")
+
     def setTgaBits(self, tgabits):
         ''' Set amount of tgabits, which can be transfered in intercon
             @param tgabits: number of tga bits (=tga bus width in intercon)
@@ -54,14 +65,14 @@ in this state of development one master object and slave objects '''
                     raise ValueError("tgabits is negative")
             else:
                 raise TypeError("tgabits got wrong type,"
-                    +"excepted: (unsigned) int, got: "+type(tgabits))
+                    +"excepted: (unsigned) int, got: "+str(type(tgabits)))
         except TypeError as e:
             print("WishboneIntercon.setTgaBits:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneIntercon.setTgaBits:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__tgabits = tgabits
@@ -79,7 +90,7 @@ in this state of development one master object and slave objects '''
                 raise UnboundLocalError("amount of tga bits has not been set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getTgaBits:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__tgabits
 
@@ -98,14 +109,14 @@ in this state of development one master object and slave objects '''
                     raise ValueError("tgcbits is negative")
             else:
                 raise TypeError("tgcbits got wrong type,"
-                    +"excepted: (unsigned) int, got: "+type(tgcbits))
+                    +"excepted: (unsigned) int, got: "+str(type(tgcbits)))
         except TypeError as e:
             print("WishboneIntercon.getTgcBits:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneIntercon.getTgcBits:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__tgcbits = tgcbits
@@ -124,7 +135,7 @@ in this state of development one master object and slave objects '''
                 raise UnboundLocalError("amount of tgc bits has not been set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getTgcBits:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__tgcbits
 
@@ -144,14 +155,14 @@ in this state of development one master object and slave objects '''
                     raise ValueError("tgdbits is negative")
             else:
                 raise TypeError("tgdbits got wrong type,"
-                    +"excepted: (unsigned) int, got: "+type(tgdbits))
+                    +"excepted: (unsigned) int, got: "+str(type(tgdbits)))
         except TypeError as e:
             print("WishboneIntercon.getTgdBits:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneIntercon.getTgdBits:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__tgdbits = tgdbits
@@ -170,7 +181,7 @@ in this state of development one master object and slave objects '''
                 raise UnboundLocalError("amount of tgd bits has not been set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getTgdBits:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__tgdbits
 
@@ -187,17 +198,17 @@ in this state of development one master object and slave objects '''
         try:
             if not isinstance(width, int):
                 raise TypeError("width got the wront type,"
-                    +"excepted: Integer, got: "+type(width))
+                    +"excepted: Integer, got: "+str(type(width)))
             else:
                 if width < 0:
                     raise ValueError("Buswidth cannot be negative")
         except TypeError as e:
             print("WishboneIntercon.setAdressBusWidth:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneIntercon.setAdressBusWidth:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__addressbuswidth = width
@@ -214,7 +225,7 @@ in this state of development one master object and slave objects '''
                 raise UnboundLocalError("width of addressbus was not set yet")
         except UnboundLocalError as e:
             print("WishboneIntercon.getAdressBusWidth:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__addressbuswidth
 
@@ -231,17 +242,17 @@ in this state of development one master object and slave objects '''
         try:
             if not isinstance(width, int):
                 raise TypeError("width got the wront type,"
-                    +"excepted: Integer, got: "+type(width))
+                    +"excepted: Integer, got: "+str(type(width)))
             else:
                 if width < 0:
                     raise ValueError("Buswidth cannot be negative")
         except TypeError as e:
             print("WishboneIntercon.setDataBusWidth:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneIntercon.setDataBusWidth:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__databuswidth = width
@@ -258,7 +269,7 @@ in this state of development one master object and slave objects '''
                 raise UnboundLocalError("width of databus was not set yet")
         except UnboundLocalError as e:
             print("WishboneIntercon.getDataBusWidth:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__databuswidth
 
@@ -274,10 +285,10 @@ in this state of development one master object and slave objects '''
         try:
             if not isinstance(wbmaster, WishboneMaster):
                 raise TypeError("wbmaster got wrong type,"
-                    +"excepted: WishboneMaster, got: "+type(wbmaster))
+                    +"excepted: WishboneMaster, got: "+str(type(wbmaster)))
         except TypeError as e:
             print("WishboneIntercon.addMaster:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__master = wbmaster
@@ -295,7 +306,7 @@ in this state of development one master object and slave objects '''
                 raise UnboundLocalError("no master component was set yet")
         except UnboundLocalError as e:
             print("WishboneIntercon.getMaster:\n"
-                +"UnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"UnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
             return WishboneMaster()
 
         return self.__master
@@ -312,10 +323,10 @@ in this state of development one master object and slave objects '''
         try:
             if not isinstance(wbslave, WishboneSlave):
                 raise TypeError("wbslave got wrong type,"
-                    +"excepted: WishboneSlave, got: "+type(wbslave))
+                    +"excepted: WishboneSlave, got: "+str(type(wbslave)))
         except TypeError as e:
             print("WishboneIntercon.addSlave:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__slaves.add(wbslave)

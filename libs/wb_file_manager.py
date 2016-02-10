@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+# standard
+import os
+import sys
 import configparser
+# custom
+from wb_component import *
+from wb_intercon import *
 
 ''' this programm offers functions to read wishbone config files
 and generate an intercon in vhdl '''
@@ -22,6 +28,7 @@ a wishbone intercon config file '''
     def __init__(self):
         ''' initialize all variables required '''
         self.__config = configparser.ConfigParser()
+        self.__intercon = WishboneIntercon()
         
     #def __del__(self):
         ''' clean up '''
@@ -31,22 +38,43 @@ a wishbone intercon config file '''
         ''' parse the given wishbone config file '''
         self.__config.read(file_to_parse)
 
+        # sections: general, master, <prefix>slave<sufix>
+        for section in self.__config.sections():
+            secl = section.lower()
+
+            for key in self.__config[section]:
+                keyl = key.lower()
+
+                # parse general intercon configuration
+                if "general" in secl:
+                    if keyl == "tga_bits":
+                        self.__intercon.setTgaBits(int(self.__config[section][key]))
+                    elif keyl == "tgc_bits":
+                        self.__intercon.setTgcBits(int(self.__config[section][key]))
+                    elif keyl == "tgd_bits":
+                        self.__intercon.setTgdBits(int(self.__config[section][key]))
+                    elif keyl == "data_bus_size":
+                        self.__intercon.setDataBusWidth(int(self.__config[section][key]))
+                    elif keyl == "address_bus_width":
+                        self.__intercon.setAdressBusWidth(int(self.__config[section][key]))
+                    else:
+                        raise configparser.Error("unknown key: "+key)
+                elif "master" in secl or "slave" in secl:
+                    # TODO: create master,slave and them to intercon
+                    # TODO: fix super call for WishboneComponent.__str__
+                    # in WishboneMaster and WishboneSlave
+                    wbmaster = WishboneMaster(WishboneComponent)
+                    self.__intercon.setMaster(wbmaster)
+                    
+                    if "slave" in secl:
+                        pass
+                else:
+                    raise configparser.Error("unknown section: "+section)
+
     def printConfigContent(self):
         ''' print parsed information nicely to console '''
-        for section in self.__config.sections():
-            if "general" in section.lower():
-                print("---------- General configuration ----------")
-
-            if "master" in section.lower():
-                print("---------- Master: "+self.__config[section]["name"]
-                    +" ----------")
-
-            if "slave" in section.lower():
-                print("---------- Slave: "+self.__config[section]["name"]
-                    +" ----------")
-
-            for key in filter(lambda temp: temp.lower() != "name", self.__config[section]):
-                print("\t"+key+": "+self.__config[section][key])
+        print(self.__intercon)
+        
     
     def generateIntercon(file_to_create="./vhdl/wb_intercon.vhdl"):
         ''' generate Intercon '''

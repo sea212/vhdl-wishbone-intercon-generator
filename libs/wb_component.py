@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-import random
+# standard
+from random import randint
 
 ''' this programm offers a class to store abstract informations for wishbone 
 master and slave modules, which can be processed afterwards '''
@@ -48,14 +49,14 @@ class Const:
     class ConstError(TypeError): pass
 
     def __setattr__(self, name, value):
-        if self.__dict__.has_key(name):
-            raise self.ConstError, "Can't rebind const(%s)"%name
+        if name in self.__dict__:
+            raise self.ConstError("Can't rebind const(%s)"%name)
         self.__dict__[name] = value
 
     def __delattr__(self, name):
-        if self.__dict__.has_key(name):
-            raise self.ConstError, "Can't unbind const(%s)"%name
-        raise NameError, name
+        if name in self.__dict__:
+            raise self.ConstError("Can't unbind const(%s)"%name)
+        raise NameError(name)
 
 
 class WishboneComponent:
@@ -87,11 +88,8 @@ properties, which both, master as well as slave components, use'''
         self.CONST.RMW = 0x00000008
         self.CONST.BYTE = 0x00000009
         self.CONST.WORD = 0x00000010
-        self.random = random()
-        # random.seed() will be called in randoms __init__ function
-        #self.random.seed()
         
-        self.__name = "wbcomp"+self.random.randint(0,1000)
+        self.__name = "wbcomp"+str(randint(0,1000))
         self.__databusize = None
         self.__endianess = None
         self.__dataflow = None
@@ -101,6 +99,48 @@ properties, which both, master as well as slave components, use'''
         self.__tga = None
         self.__tgc = None
         self.__tgd = None
+
+    def __str__(self):
+        strrepr = "Name: "+str(self.__name)+"\nSize of databus: "+str(self.__databussize)
+
+        if self.__endianess == None:
+            strrepr += "\nEndianess: None"
+        else:
+            if self.__endianess == SELF.CONST.LENDIAN:
+                strrepr += "\nEndianess: Little Endian"
+            else:
+                strrepr += "\nEndianess: Big Endian"
+
+        if self.__dataflow == None:
+            strrepr += "\nDirection of dataflow: None"
+        else:
+            # no switch case is available in python (need to trick with mappings...)
+            # so we use if,elif,else...
+            if self.__dataflow == self.CONST.READ:
+                strrepr += "\nDirection of dataflow: Read only"
+            elif self.__dataflow == self.CONST.WRITE:
+                strrepr += "\nDirection of dataflow: Write only"
+            else:
+                strrepr += "\nDirection of dataflow: Read/Write"
+
+        if self.__datatransfer == None:
+            strrepr += "\nDatatransfer cycle: None"
+        else:
+            # no switch case is available in python (need to trick with mappings...)
+            # so we use if,elif,else...
+            if self.__datatransfer == self.CONST.SINGLE:
+                strrepr += "\nDatatransfer cycle: Single"
+            elif self.__datatransfer == self.CONST.BURST:
+                strrepr += "\nDatatransfer cycle: Burst"
+            else:
+                strrepr += "\nDatatransfer cycle: Read, modify, write"
+
+        strrepr = "\nEnable error signal: "+str(self.__err)+"\nEnable retry signal: "\
+                    +str(self.__rty)+"\nEnable tga signal: "+str(self.__tga)\
+                    +"\nEnable tgc signal: "+str(self.__tgc)+"\nEnable tgd signal: "\
+                    +str(self.__tgd)
+
+        return strrepr.replace("None", "Not defined")
 
     def setName(self, name):
         ''' set a name for a wishbone component
@@ -113,10 +153,10 @@ properties, which both, master as well as slave components, use'''
         try:
             if not isinstance(name, str):
                 raise TypeError("name got wrong type,"
-                    +"excepted: String, got: "+type(name))
+                    +"excepted: String, got: "+str(type(name)))
         except TypeError as e:
             print("WishboneComponent.setName:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__name = name
@@ -133,7 +173,7 @@ properties, which both, master as well as slave components, use'''
                 raise UnboundLocalError("Name was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getName:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__name
 
@@ -149,17 +189,17 @@ properties, which both, master as well as slave components, use'''
         try:
             if not isinstance(width, int):
                 raise TypeError("width got the wrong type,"
-                    +"excepted: Integer, got: "+type(width))
+                    +"excepted: Integer, got: "+str(type(width)))
             else:
                 if width < 0:
                     raise ValueError("Buswidth cannot be negative")
         except TypeError as e:
             print("WishboneComponent.setDataBusWidth:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneComponent.setDataBusWidth:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__databuswidth = width
@@ -176,7 +216,7 @@ properties, which both, master as well as slave components, use'''
                 raise UnboundLocalError("width of databus was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getDataBusWidth:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__databuswidth
 
@@ -195,18 +235,18 @@ properties, which both, master as well as slave components, use'''
         try:
             if not isinstance(endianess, int):
                 raise TypeError("endianess got the wrong type,"
-                    +"excepted: Integer, got: "+type(endianess))
+                    +"excepted: Integer, got: "+str(type(endianess)))
             else:
                 if not (endianess == self.CONST.BENDIAN
                 or endianess == self.CONST.LENDIAN):
                     raise ValueError("Unknown endianess (use the given constants)")
         except TypeError as e:
             print("WishboneComponent.setEndianess:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneComponent.setEndianess:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__endianess = endianess
@@ -223,7 +263,7 @@ properties, which both, master as well as slave components, use'''
                 raise UnboundLocalError("endianess was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getEndianess:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__endianess
 
@@ -240,18 +280,18 @@ properties, which both, master as well as slave components, use'''
         try:
             if not isinstance(dataflow, int):
                 raise TypeError("dataflow got the wrong type,"
-                    +"excepted: Integer, got: "+type(dataflow))
+                    +"excepted: Integer, got: "+str(type(dataflow)))
             else:
                 if not (dataflow == self.CONST.READ or dataflow == self.CONST.WRITE
                 or dataflow == self.CONST.RW):
                     raise ValueError("Unknown dataflow (use the given constants)")
         except TypeError as e:
             print("WishboneComponent.setDataFlow:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneComponent.setDataFlow:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__dataflow = dataflow
@@ -268,7 +308,7 @@ properties, which both, master as well as slave components, use'''
                 raise UnboundLocalError("dataflow was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getDataFlow:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__dataflow
 
@@ -285,18 +325,18 @@ properties, which both, master as well as slave components, use'''
         try:
             if not isinstance(datatransfer, int):
                 raise TypeError("datatransfer got the wrong type,"
-                    +"excepted: Integer, got: "+type(datatransfer))
+                    +"excepted: Integer, got: "+str(type(datatransfer)))
             else:
                 if not (datatransfer == self.CONST.SINGLE or datatransfer == self.CONST.BURST
                 or datatransfer == self.CONST.RMW):
                     raise ValueError("Unknown datatransfer (use the given constants)")
         except TypeError as e:
             print("WishboneComponent.setDataTransfer:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneComponent.setDataTransfer:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__datatransfer = datatransfer
@@ -313,7 +353,7 @@ properties, which both, master as well as slave components, use'''
                 raise UnboundLocalError("datatransfer was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getDataTransfer:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__datatransfer
         
@@ -328,10 +368,10 @@ properties, which both, master as well as slave components, use'''
         try:
             if not isinstance(enabled, bool):
                 raise TypeError("enabled got the wrong type,"
-                    +"excepted: Boolean, got: "+type(enabled))
+                    +"excepted: Boolean, got: "+str(type(enabled)))
         except TypeError as e:
             print("WishboneComponent.setErrorSignal:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__err = enabled
@@ -348,7 +388,7 @@ properties, which both, master as well as slave components, use'''
                 raise UnboundLocalError("error signal was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getErrorSignal:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__err
 
@@ -363,10 +403,10 @@ properties, which both, master as well as slave components, use'''
         try:
             if not isinstance(enabled, bool):
                 raise TypeError("enabled got the wrong type,"
-                    +"excepted: Boolean, got: "+type(enabled))
+                    +"excepted: Boolean, got: "+str(type(enabled)))
         except TypeError as e:
             print("WishboneComponent.setRetrySignal:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__rty = enabled
@@ -383,7 +423,7 @@ properties, which both, master as well as slave components, use'''
                 raise UnboundLocalError("retry signal was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getRetrySignal:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__rty
 
@@ -398,10 +438,10 @@ properties, which both, master as well as slave components, use'''
         try:
             if not isinstance(enabled, bool):
                 raise TypeError("enabled got the wrong type,"
-                    +"excepted: Boolean, got: "+type(enabled))
+                    +"excepted: Boolean, got: "+str(type(enabled)))
         except TypeError as e:
             print("WishboneComponent.setTgaSignal:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__tga = enabled
@@ -418,7 +458,7 @@ properties, which both, master as well as slave components, use'''
                 raise UnboundLocalError("tga signal was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getTgaSignal:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__tga
 
@@ -433,10 +473,10 @@ properties, which both, master as well as slave components, use'''
         try:
             if not isinstance(enabled, bool):
                 raise TypeError("enabled got the wrong type,"
-                    +"excepted: Boolean, got: "+type(enabled))
+                    +"excepted: Boolean, got: "+str(type(enabled)))
         except TypeError as e:
             print("WishboneComponent.setTgcSignal:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__tgc = enabled
@@ -453,7 +493,7 @@ properties, which both, master as well as slave components, use'''
                 raise UnboundLocalError("tgc signal was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getTgcSignal:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__tgc
 
@@ -468,10 +508,10 @@ properties, which both, master as well as slave components, use'''
         try:
             if not isinstance(enabled, bool):
                 raise TypeError("enabled got the wrong type,"
-                    +"excepted: Boolean, got: "+type(enabled))
+                    +"excepted: Boolean, got: "+str(type(enabled)))
         except TypeError as e:
             print("WishboneComponent.setTgdSignal:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__tgd = enabled
@@ -488,7 +528,7 @@ properties, which both, master as well as slave components, use'''
                 raise UnboundLocalError("tgd signal was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getTgdSignal:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__tgd
 
@@ -505,6 +545,15 @@ component, but not in a slave'''
         # set address_bus_width
         self.__addressbuswidth = None
 
+    def __str__(self):
+        strrepr = "------------------ Wishbone Master: "+str(self.__name)\
+                  +" ------------------\n"
+        strrepr += str(super())
+        strrepr += "\nMaster specific:\n\tSize of Addressbus: "\
+                + str(self.__addressbuswidth)
+
+        return strrepr.replace("None", "Not defined")
+
     def setAddressBusWidth(self, width):
         ''' Set the width of the addressbus of a wishbone master component
             @param width: bus width in bits (decimal)
@@ -517,17 +566,17 @@ component, but not in a slave'''
         try:
             if not isinstance(width, int):
                 raise TypeError("width got the wrong type,"
-                    +"excepted: Integer, got: "+type(width))
+                    +"excepted: Integer, got: "+str(type(width)))
             else:
                 if width < 0:
                     raise ValueError("Buswidth cannot be negative")
         except TypeError as e:
             print("WishboneComponent.setAddressBusWidth:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneComponent.setAddressBusWidth:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__addressbuswidth = width
@@ -544,7 +593,7 @@ component, but not in a slave'''
                 raise UnboundLocalError("width of addressbus was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getAddressBusWidth:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__addressbuswidth
 
@@ -565,7 +614,7 @@ component, but not in a master'''
         # call super
         super().__init__()
         # override name
-        self.__name = "wbs"+self.random.randint(1,1000)
+        self.__name = "wbs"+str(randint(0,1000))
         # set slave specific variables
         self.__baseaddress = None
         self.__addresssize = None
@@ -573,6 +622,35 @@ component, but not in a master'''
         self.__wordsize = None
         self.__addressbushigh = None
         self.__addressbuslow = None
+
+    def __str__(self):
+        strrepr = "------------------ Wishbone Slave: "+str(self.__name)\
+                  +" ------------------\n"
+        strrepr += super().__str__()
+        strrepr += "\nSlave specific:"
+
+        if self.__baseaddress == None:
+            strrepr += "\n\tBaseaddress: None"
+        else:
+            strrepr += "\n\tBaseaddress: "+hex(self.__baseaddress)
+
+        if self.__addresssize == None:
+            strrepr += "\n\tAddresssize: None"
+        else:
+            strrepr += "\n\tAddresssize: "+hex(self.__addresssize)
+
+        if self.__addressinggranularity == None:
+            strrepr += "\n\tAddressinggranularity: None"
+        else:
+            if self.__addressinggranularity == self.CONST.BYTE:
+                strrepr += "\n\tAddressinggranularity: Byte"
+            else:
+                strrepr += "\n\tAddressinggranularity: Word"
+
+        strrepr += "\n\tWordsize: "+str(self.__wordsize)+"\n\tHighest addressbit: "\
+                +str(self.__addressbushigh)+"\n\tLowest addressbit: "+str(self.__addressbuslow)
+                
+        return strrepr.replace("None", "Not defined")
 
     def setBaseAddress(self, baseadr):
         ''' Set the base address of a wishbone slave component
@@ -586,17 +664,17 @@ component, but not in a master'''
         try:
             if not isinstance(baseadr, int):
                 raise TypeError("baseadr got the wrong type,"
-                    +"excepted: Integer, got: "+type(baseadr))
+                    +"excepted: Integer, got: "+str(type(baseadr)))
             else:
                 if baseadr < 0:
                     raise ValueError("Base address cannot be negative")
         except TypeError as e:
             print("WishboneSlave.setBaseAddress:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneSlave.setBaseAddress:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__baseaddress = baseadr
@@ -613,7 +691,7 @@ component, but not in a master'''
                 raise UnboundLocalError("Base address was not set yet")
         except UnboundLocalError as e:
             print("WishboneSlave.getBaseAddress:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__baseaddress
 
@@ -629,17 +707,17 @@ component, but not in a master'''
         try:
             if not isinstance(size, int):
                 raise TypeError("size got the wrong type,"
-                    +"excepted: Integer, got: "+type(size))
+                    +"excepted: Integer, got: "+str(type(size)))
             else:
                 if size < 0:
                     raise ValueError("address size cannot be negative")
         except TypeError as e:
             print("WishboneSlave.setAddressSize:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneSlave.setAddressSize:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__addresssize = size
@@ -656,7 +734,7 @@ component, but not in a master'''
                 raise UnboundLocalError("Addresssize was not set yet")
         except UnboundLocalError as e:
             print("WishboneSlave.getAddressSize:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__addresssize
 
@@ -674,18 +752,18 @@ component, but not in a master'''
         try:
             if not isinstance(addressinggranularity, int):
                 raise TypeError("addressinggranularity got the wrong type,"
-                    +"excepted: Integer, got: "+type(addressinggranularity))
+                    +"excepted: Integer, got: "+str(type(addressinggranularity)))
             else:
                 if not (addressinggranularity == self.CONST.BYTE
                 or addressinggranularity == self.CONST.WORD):
                     raise ValueError("Unknown addressinggranularity (use the given constants)")
         except TypeError as e:
             print("WishboneSlave.setAddressingGranularity:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneSlave.setAddressingGranularity:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__addressinggranularity = addressinggranularity
@@ -702,7 +780,7 @@ component, but not in a master'''
                 raise UnboundLocalError("addressinggranularity was not set yet")
         except UnboundLocalError as e:
             print("WishboneSlave.getAddressingGranularity:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__addressinggranularity
 
@@ -719,17 +797,17 @@ component, but not in a master'''
         try:
             if not isinstance(size, int):
                 raise TypeError("size got the wrong type,"
-                    +"excepted: Integer, got: "+type(size))
+                    +"excepted: Integer, got: "+str(type(size)))
             else:
                 if size < 0:
                     raise ValueError("size of word cannot be negative")
         except TypeError as e:
             print("WishboneSlave.setWordSize:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneSlave.setWordSize:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__wordsize = size
@@ -746,7 +824,7 @@ component, but not in a master'''
                 raise UnboundLocalError("wordsize was not set yet")
         except UnboundLocalError as e:
             print("WishboneSlave.getWordSize:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__wordsize
 
@@ -761,17 +839,17 @@ component, but not in a master'''
         try:
             if not isinstance(bit, int):
                 raise TypeError("bit got the wrong type,"
-                    +"excepted: Integer, got: "+type(bit))
+                    +"excepted: Integer, got: "+str(type(bit)))
             else:
                 if bit < 0:
                     raise ValueError("highest addressbit cannot be negative")
         except TypeError as e:
             print("WishboneComponent.setHighestAddressBit:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneSlave.setHighestAddressBit:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__addressbushigh = bit
@@ -788,7 +866,7 @@ component, but not in a master'''
                 raise UnboundLocalError("highest addressbus bit was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getHighestAddressBit:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__addressbushigh
 
@@ -803,17 +881,17 @@ component, but not in a master'''
         try:
             if not isinstance(bit, int):
                 raise TypeError("bit got the wrong type,"
-                    +"excepted: Integer, got: "+type(bit))
+                    +"excepted: Integer, got: "+str(type(bit)))
             else:
                 if bit < 0:
                     raise ValueError("lowest addressbit cannot be negative")
         except TypeError as e:
             print("WishboneComponent.setLowestAddressBit:\n"
-                +"\tTypeError occurred: "+e.value+"\nstopping execution")
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
             print("WishboneSlave.setLowestAddressBit:\n"
-                +"\tValueError occurred: "+e.value+"\nstopping execution")
+                +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
         self.__addressbuslow = bit
@@ -830,6 +908,6 @@ component, but not in a master'''
                 raise UnboundLocalError("lowest addressbus bit was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getLowestAddressBit:\n"
-                +"\tUnboundLocalError occurred: "+e.value+"\nstopping execution")
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__addressbuslow
