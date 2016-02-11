@@ -46,7 +46,7 @@ in this state of development one master object and slave objects '''
             strrepr += "\n"+str(self.__master)
 
         for slave in self.__slaves:
-            strrepr += "\n"+str(self.__slave)
+            strrepr += "\n"+str(slave)
 
         return strrepr.replace("None", "Not defined")
 

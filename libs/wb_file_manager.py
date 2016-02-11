@@ -42,6 +42,11 @@ a wishbone intercon config file '''
         for section in self.__config.sections():
             secl = section.lower()
 
+            if secl == "master":
+                wbcomp = WishboneMaster()
+            elif secl == "slave":
+                wbcomp = WishboneSlave()
+
             for key in self.__config[section]:
                 keyl = key.lower()
 
@@ -53,21 +58,14 @@ a wishbone intercon config file '''
                         self.__intercon.setTgcBits(int(self.__config[section][key]))
                     elif keyl == "tgd_bits":
                         self.__intercon.setTgdBits(int(self.__config[section][key]))
-                    elif keyl == "data_bus_size":
+                    elif keyl == "data_bus_width":
                         self.__intercon.setDataBusWidth(int(self.__config[section][key]))
                     elif keyl == "address_bus_width":
                         self.__intercon.setAdressBusWidth(int(self.__config[section][key]))
                     else:
                         raise configparser.Error("unknown key: "+key)
                 elif "master" in secl or "slave" in secl:
-                    # TODO: create master,slave and them to intercon
-                    # TODO: fix super call for WishboneComponent.__str__
-                    # in WishboneMaster and WishboneSlave
-                    wbmaster = WishboneMaster(WishboneComponent)
-                    self.__intercon.setMaster(wbmaster)
                     
-                    if "slave" in secl:
-                        pass
                 else:
                     raise configparser.Error("unknown section: "+section)
 

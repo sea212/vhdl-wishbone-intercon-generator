@@ -89,56 +89,58 @@ properties, which both, master as well as slave components, use'''
         self.CONST.BYTE = 0x00000009
         self.CONST.WORD = 0x00000010
         
-        self.__name = "wbcomp"+str(randint(0,1000))
-        self.__databusize = None
-        self.__endianess = None
-        self.__dataflow = None
-        self.__datatransfer = None
-        self.__err = None
-        self.__rty = None
-        self.__tga = None
-        self.__tgc = None
-        self.__tgd = None
+        # one underscore = protected visibility
+        # two underscores = private visibility
+        self._name = "wbcomp"+str(randint(0,1000))
+        self._databuswidth = None
+        self._endianess = None
+        self._dataflow = None
+        self._datatransfer = None
+        self._err = None
+        self._rty = None
+        self._tga = None
+        self._tgc = None
+        self._tgd = None
 
     def __str__(self):
-        strrepr = "Name: "+str(self.__name)+"\nSize of databus: "+str(self.__databussize)
+        strrepr = "Name: "+str(self._name)+"\nWidth of databus: "+str(self._databuswidth)
 
-        if self.__endianess == None:
+        if self._endianess == None:
             strrepr += "\nEndianess: None"
         else:
-            if self.__endianess == SELF.CONST.LENDIAN:
+            if self._endianess == SELF.CONST.LENDIAN:
                 strrepr += "\nEndianess: Little Endian"
             else:
                 strrepr += "\nEndianess: Big Endian"
 
-        if self.__dataflow == None:
+        if self._dataflow == None:
             strrepr += "\nDirection of dataflow: None"
         else:
             # no switch case is available in python (need to trick with mappings...)
             # so we use if,elif,else...
-            if self.__dataflow == self.CONST.READ:
+            if self._dataflow == self.CONST.READ:
                 strrepr += "\nDirection of dataflow: Read only"
-            elif self.__dataflow == self.CONST.WRITE:
+            elif self._dataflow == self.CONST.WRITE:
                 strrepr += "\nDirection of dataflow: Write only"
             else:
                 strrepr += "\nDirection of dataflow: Read/Write"
 
-        if self.__datatransfer == None:
+        if self._datatransfer == None:
             strrepr += "\nDatatransfer cycle: None"
         else:
             # no switch case is available in python (need to trick with mappings...)
             # so we use if,elif,else...
-            if self.__datatransfer == self.CONST.SINGLE:
+            if self._datatransfer == self.CONST.SINGLE:
                 strrepr += "\nDatatransfer cycle: Single"
-            elif self.__datatransfer == self.CONST.BURST:
+            elif self._datatransfer == self.CONST.BURST:
                 strrepr += "\nDatatransfer cycle: Burst"
             else:
                 strrepr += "\nDatatransfer cycle: Read, modify, write"
 
-        strrepr = "\nEnable error signal: "+str(self.__err)+"\nEnable retry signal: "\
-                    +str(self.__rty)+"\nEnable tga signal: "+str(self.__tga)\
-                    +"\nEnable tgc signal: "+str(self.__tgc)+"\nEnable tgd signal: "\
-                    +str(self.__tgd)
+        strrepr = "\nEnable error signal: "+str(self._err)+"\nEnable retry signal: "\
+                    +str(self._rty)+"\nEnable tga signal: "+str(self._tga)\
+                    +"\nEnable tgc signal: "+str(self._tgc)+"\nEnable tgd signal: "\
+                    +str(self._tgd)
 
         return strrepr.replace("None", "Not defined")
 
@@ -159,7 +161,7 @@ properties, which both, master as well as slave components, use'''
                 +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__name = name
+        self._name = name
         return True
 
     def getName(self):
@@ -169,13 +171,13 @@ properties, which both, master as well as slave components, use'''
             @return: name on success, None otherwise
         '''
         try:
-            if self.__name == None:
+            if self._name == None:
                 raise UnboundLocalError("Name was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getName:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
-        return self.__name
+        return self._name
 
     def setDataBusWidth(self, width):
         ''' Set the width of the databus of a wishbone component
@@ -202,7 +204,7 @@ properties, which both, master as well as slave components, use'''
                 +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__databuswidth = width
+        self._databuswidth = width
         return True
 
     def getDataBusWidth(self):
@@ -212,13 +214,13 @@ properties, which both, master as well as slave components, use'''
             @return: width of databus on success, None otherwise
         '''
         try:
-            if self.__databuswidth == None:
+            if self._databuswidth == None:
                 raise UnboundLocalError("width of databus was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getDataBusWidth:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
-        return self.__databuswidth
+        return self._databuswidth
 
     def setEndianess(self, endianess):
         ''' Set the endianess
@@ -249,7 +251,7 @@ properties, which both, master as well as slave components, use'''
                 +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__endianess = endianess
+        self._endianess = endianess
         return True
 
     def getEndianess(self):
@@ -259,13 +261,13 @@ properties, which both, master as well as slave components, use'''
             @return: endianess (constant) on success, None otherwise
         '''
         try:
-            if self.__endianess == None:
+            if self._endianess == None:
                 raise UnboundLocalError("endianess was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getEndianess:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
-        return self.__endianess
+        return self._endianess
 
     def setDataFlow(self, dataflow):
         ''' define if the module can read or write or both
@@ -294,7 +296,7 @@ properties, which both, master as well as slave components, use'''
                 +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__dataflow = dataflow
+        self._dataflow = dataflow
         return True
 
     def getDataFlow(self):
@@ -304,13 +306,13 @@ properties, which both, master as well as slave components, use'''
             @return: dataflow (constant) on success, None otherwise
         '''
         try:
-            if self.__dataflow == None:
+            if self._dataflow == None:
                 raise UnboundLocalError("dataflow was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getDataFlow:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
-        return self.__dataflow
+        return self._dataflow
 
     def setDataTransfer(self, datatransfer):
         ''' define how data will be transfered (single, burst, rmw)
@@ -339,7 +341,7 @@ properties, which both, master as well as slave components, use'''
                 +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__datatransfer = datatransfer
+        self._datatransfer = datatransfer
         return True
 
     def getDataTransfer(self):
@@ -349,13 +351,13 @@ properties, which both, master as well as slave components, use'''
             @return: datatransfer (constant) on success, None otherwise
         '''
         try:
-            if self.__datatransfer == None:
+            if self._datatransfer == None:
                 raise UnboundLocalError("datatransfer was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getDataTransfer:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
-        return self.__datatransfer
+        return self._datatransfer
         
     def setErrorSignal(self, enabled):
         ''' activate (true) / deactivate (false) the error signal
@@ -374,7 +376,7 @@ properties, which both, master as well as slave components, use'''
                 +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__err = enabled
+        self._err = enabled
         return True
 
     def getErrorSignal(self):
@@ -384,13 +386,13 @@ properties, which both, master as well as slave components, use'''
             @return: true/false for used/not used on success, None otherwise
         '''
         try:
-            if self.__enabled == None:
+            if self._enabled == None:
                 raise UnboundLocalError("error signal was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getErrorSignal:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
-        return self.__err
+        return self._err
 
     def setRetrySignal(self, enabled):
         ''' activate (true) / deactivate (false) the retry signal
@@ -409,7 +411,7 @@ properties, which both, master as well as slave components, use'''
                 +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__rty = enabled
+        self._rty = enabled
         return True
 
     def getRetrySignal(self):
@@ -419,13 +421,13 @@ properties, which both, master as well as slave components, use'''
             @return: true/false for used/not used on success, None otherwise
         '''
         try:
-            if self.__enabled == None:
+            if self._enabled == None:
                 raise UnboundLocalError("retry signal was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getRetrySignal:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
-        return self.__rty
+        return self._rty
 
     def setTgaSignal(self, enabled):
         ''' activate (true) / deactivate (false) the tga signal
@@ -444,7 +446,7 @@ properties, which both, master as well as slave components, use'''
                 +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__tga = enabled
+        self._tga = enabled
         return True
 
     def getTgaSignal(self):
@@ -454,13 +456,13 @@ properties, which both, master as well as slave components, use'''
             @return: true/false for used/not used on success, None otherwise
         '''
         try:
-            if self.__enabled == None:
+            if self._enabled == None:
                 raise UnboundLocalError("tga signal was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getTgaSignal:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
-        return self.__tga
+        return self._tga
 
     def setTgcSignal(self, enabled):
         ''' activate (true) / deactivate (false) the tgc signal
@@ -479,7 +481,7 @@ properties, which both, master as well as slave components, use'''
                 +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__tgc = enabled
+        self._tgc = enabled
         return True
 
     def getTgcSignal(self):
@@ -489,13 +491,13 @@ properties, which both, master as well as slave components, use'''
             @return: true/false for used/not used on success, None otherwise
         '''
         try:
-            if self.__enabled == None:
+            if self._enabled == None:
                 raise UnboundLocalError("tgc signal was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getTgcSignal:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
-        return self.__tgc
+        return self._tgc
 
     def setTgdSignal(self, enabled):
         ''' activate (true) / deactivate (false) the tgd signal
@@ -514,7 +516,7 @@ properties, which both, master as well as slave components, use'''
                 +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__tgd = enabled
+        self._tgd = enabled
         return True
 
     def getTgdSignal(self):
@@ -524,19 +526,19 @@ properties, which both, master as well as slave components, use'''
             @return: true/false for used/not used on success, None otherwise
         '''
         try:
-            if self.__enabled == None:
+            if self._enabled == None:
                 raise UnboundLocalError("tgd signal was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getTgdSignal:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
-        return self.__tgd
+        return self._tgd
 
-class WishboneMaster:
+class WishboneMaster(WishboneComponent):
     ''' WishboneMaster is a subclass of WishboneComponent and was created to 
 store informations from a wishbone component which are present in a master
 component, but not in a slave'''
-    def __init__(self, WishboneComponent):
+    def __init__(self):
         #initfunction
         # call super
         super().__init__()
@@ -548,7 +550,7 @@ component, but not in a slave'''
     def __str__(self):
         strrepr = "------------------ Wishbone Master: "+str(self.__name)\
                   +" ------------------\n"
-        strrepr += str(super())
+        strrepr += super().__str__()
         strrepr += "\nMaster specific:\n\tSize of Addressbus: "\
                 + str(self.__addressbuswidth)
 
@@ -597,11 +599,11 @@ component, but not in a slave'''
 
         return self.__addressbuswidth
 
-class WishboneSlave:
+class WishboneSlave(WishboneComponent):
     ''' WishboneMaster is a subclass of WishboneComponent and was created to 
 store informations from a wishbone component which are present in a slave
 component, but not in a master'''
-    def __init__(self, WishboneComponent):
+    def __init__(self):
         #initfunction
         # List of keywords for slave modules and possible values:
         # same as keywords for master (but address_bus_width), plus:
