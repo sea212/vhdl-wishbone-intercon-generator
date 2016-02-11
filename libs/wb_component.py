@@ -95,7 +95,7 @@ properties, which both, master as well as slave components, use'''
         self._databuswidth = None
         self._endianess = None
         self._dataflow = None
-        self._datatransfer = None
+        #self._datatransfer = None
         self._err = None
         self._rty = None
         self._tga = None
@@ -108,7 +108,7 @@ properties, which both, master as well as slave components, use'''
         if self._endianess == None:
             strrepr += "\nEndianess: None"
         else:
-            if self._endianess == SELF.CONST.LENDIAN:
+            if self._endianess == self.CONST.LENDIAN:
                 strrepr += "\nEndianess: Little Endian"
             else:
                 strrepr += "\nEndianess: Big Endian"
@@ -125,6 +125,7 @@ properties, which both, master as well as slave components, use'''
             else:
                 strrepr += "\nDirection of dataflow: Read/Write"
 
+        '''
         if self._datatransfer == None:
             strrepr += "\nDatatransfer cycle: None"
         else:
@@ -136,8 +137,9 @@ properties, which both, master as well as slave components, use'''
                 strrepr += "\nDatatransfer cycle: Burst"
             else:
                 strrepr += "\nDatatransfer cycle: Read, modify, write"
+        '''
 
-        strrepr = "\nEnable error signal: "+str(self._err)+"\nEnable retry signal: "\
+        strrepr += "\nEnable error signal: "+str(self._err)+"\nEnable retry signal: "\
                     +str(self._rty)+"\nEnable tga signal: "+str(self._tga)\
                     +"\nEnable tgc signal: "+str(self._tgc)+"\nEnable tgd signal: "\
                     +str(self._tgd)
@@ -236,8 +238,9 @@ properties, which both, master as well as slave components, use'''
         '''
         try:
             if not isinstance(endianess, int):
-                raise TypeError("endianess got the wrong type,"
-                    +"excepted: Integer, got: "+str(type(endianess)))
+                raise TypeError("endianess got the wrong type,\
+                    excepted: CONST.LENDIAN or CONST.BENDIAN,\
+                     got: "+str(type(endianess)))
             else:
                 if not (endianess == self.CONST.BENDIAN
                 or endianess == self.CONST.LENDIAN):
@@ -314,7 +317,8 @@ properties, which both, master as well as slave components, use'''
 
         return self._dataflow
 
-    def setDataTransfer(self, datatransfer):
+    
+    #def setDataTransfer(self, datatransfer):
         ''' define how data will be transfered (single, burst, rmw)
             @param datatransfer: can be WishboneComponent.CONST.SINGLE, .BURST, .RMW
             @type datatransfer: Integer
@@ -323,6 +327,7 @@ properties, which both, master as well as slave components, use'''
                                 .SINGLE, .BURST, .RMW
             @rtype: Boolean
             @return: true on success, false otherwise
+        '''
         '''
         try:
             if not isinstance(datatransfer, int):
@@ -343,12 +348,14 @@ properties, which both, master as well as slave components, use'''
 
         self._datatransfer = datatransfer
         return True
+        '''
 
-    def getDataTransfer(self):
+    #def getDataTransfer(self):
         ''' get the endianess
             @raise UnboundLocalError: raised if no datatransfer was set yet
             @rtype: Integer
             @return: datatransfer (constant) on success, None otherwise
+        '''
         '''
         try:
             if self._datatransfer == None:
@@ -358,6 +365,7 @@ properties, which both, master as well as slave components, use'''
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self._datatransfer
+        '''
         
     def setErrorSignal(self, enabled):
         ''' activate (true) / deactivate (false) the error signal
@@ -543,12 +551,12 @@ component, but not in a slave'''
         # call super
         super().__init__()
         # override name
-        self.__name = "wbm"
+        self._name = "wbm"
         # set address_bus_width
         self.__addressbuswidth = None
 
     def __str__(self):
-        strrepr = "------------------ Wishbone Master: "+str(self.__name)\
+        strrepr = "------------------ Wishbone Master: "+str(self._name)\
                   +" ------------------\n"
         strrepr += super().__str__()
         strrepr += "\nMaster specific:\n\tSize of Addressbus: "\
@@ -616,7 +624,7 @@ component, but not in a master'''
         # call super
         super().__init__()
         # override name
-        self.__name = "wbs"+str(randint(0,1000))
+        self._name = "wbs"+str(randint(0,1000))
         # set slave specific variables
         self.__baseaddress = None
         self.__addresssize = None
@@ -626,7 +634,7 @@ component, but not in a master'''
         self.__addressbuslow = None
 
     def __str__(self):
-        strrepr = "------------------ Wishbone Slave: "+str(self.__name)\
+        strrepr = "------------------ Wishbone Slave: "+str(self._name)\
                   +" ------------------\n"
         strrepr += super().__str__()
         strrepr += "\nSlave specific:"
