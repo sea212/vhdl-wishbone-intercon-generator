@@ -3,8 +3,10 @@
 
 # standard
 import os
-import sys
+#import sys
 import configparser
+from datetime import datetime
+from copy import copy
 # custom
 from wb_component import *
 from wb_intercon import *
@@ -14,7 +16,8 @@ and generate an intercon in vhdl '''
 
 __author__ = "Harald Heckmann"
 __copyright__ = "Copyright 2016"
-__credits__ = ["Prof. Dr. Steffen Reith", "Harald Heckmann"]
+__credits__ = ["Prof. Dr. Steffen Reith (steffen.reith@hs-rm,de)", \
+                "Harald Heckmann (harald.heckmann@student.hs-rm.de)"]
 __license__ = "GPLv3"
 __version__ = "1.0.0"
 __maintainer__ = "Harald Heckmann"
@@ -29,10 +32,11 @@ a wishbone intercon config file '''
         ''' initialize all variables required '''
         self.__config = configparser.ConfigParser()
         self.__intercon = WishboneIntercon()
-        
-    #def __del__(self):
-        ''' clean up '''
-    #    self.__config
+
+        self._workdir = os.getcwd()+"/"
+        self._tmplinter = self._workdir+"vhdl/template_intercon.tmpl"
+        self._vhdlinter = self._workdir+"vhdl/wb_intercon.vhdl"
+        self._tmplslave = self._workdir+"vhdl/template_slave.tmpl"
 
     def parse(self, file_to_parse="./cfg/wishbone.ini"):
         ''' parse the given wishbone config file '''
@@ -53,7 +57,10 @@ a wishbone intercon config file '''
 
                 # parse general intercon configuration
                 if "general" in secl:
-                    if keyl == "tga_bits":
+                    if keyl == "name":
+                        self.__intercon.setName(str(self.__config[section][key]))
+                        self._vhdlinter = self._workdir+"vhdl/"+self.__intercon.getName()+".vhdl"
+                    elif keyl == "tga_bits":
                         self.__intercon.setTgaBits(int(self.__config[section][key]))
                     elif keyl == "tgc_bits":
                         self.__intercon.setTgcBits(int(self.__config[section][key]))
@@ -176,5 +183,98 @@ a wishbone intercon config file '''
         print(self.__intercon)
         
     
-    def generateIntercon(file_to_create="./vhdl/wb_intercon.vhdl"):
-        ''' generate Intercon '''
+    def generateIntercon(self):
+        ''' generate intercon and write it to a vhdl file'''
+        # read template
+        with open(self._tmplinter, "r") as template:
+            content = template.read()
+
+        # replace placeholders, header
+        content = content.replace("%date%", datetime.now().__str__())
+        content = content.replace("%iname%", self.__intercon.getName())
+        
+        # master
+        master = self.__intercon.getMaster()
+        content = content.replace("%mname%", master.getName())
+        content = content.replace("%mdbwidth%", str(master.getDataBusWidth()-1))
+        content = content.replace("%madwidth%", str(master.getAddressBusWidth()-1))
+        content = content.replace("%mselwidth%", str((master.getDataBusWidth() >> 3)))
+        
+        additional = ""
+
+        # set optional master signals
+        if master.getErrorSignal():
+            additional += "\n\t\t\t"+master.getName()+"_err_i : out  std_logic;"
+
+        if master.getRetrySignal():
+            additional += "\n\t\t\t"+master.getName()+"_rty_i : out  std_logic;"
+
+        if master.getTgaSignal():
+            additional += "\n\t\t\t"+master.getName()+"_tga_o : in  std_logic_vector("\
+                +str(self.__intercon.getTgaBits()-1)+" downto 0);"
+
+        if master.getTgcSignal():
+            additional += "\n\t\t\t"+master.getName()+"_tgc_o : in  std_logic_vector("\
+                +str(self.__intercon.getTgcBits()-1)+" downto 0);"
+
+        if master.getTgdSignal():
+            additional += "\n\t\t\t"+master.getName()+"_tgd_i : out std_logic_vector("\
+                +str(self.__intercon.getTgdBits()-1)+" downto 0);"
+            additional += "\n\t\t\t"+master.getName()+"_tgd_o : in  std_logic_vector("\
+                +str(self.__intercon.getTgdBits()-1)+" downto 0);"
+
+        if additional == "":
+            content = content.replace("%madditional%", "")
+        else:
+            content = content.replace("%madditional%", additional)
+
+        # slave
+        with open(self._tmplslave, "r") as template:
+            fb_scontent = template.read()
+
+        slavedefinitions = ""
+
+        for slave in self.__intercon.getSlaves():
+            scontent = copy(fb_scontent)
+            scontent = scontent.replace("%sname%", slave.getName())
+            scontent = scontent.replace("%sdbwidth%", str(slave.getDataBusWidth()-1))
+            scontent = scontent.replace("%sadhi%", str(slave.getHighestAddressBit()))
+            scontent = scontent.replace("%sadlo%", str(slave.getLowestAddressBit()))
+            scontent = scontent.replace("%sselwidth%", str((slave.getDataBusWidth() >> 3)))
+
+            additional = ""
+
+            # set optional slave signals
+            if slave.getErrorSignal():
+                additional += "\n\t\t\t"+slave.getName()+"_err_o : in  std_logic;"
+
+            if slave.getRetrySignal():
+                additional += "\n\t\t\t"+slave.getName()+"_rty_o : in  std_logic;"
+
+            if slave.getTgaSignal():
+                additional += "\n\t\t\t"+slave.getName()+"_tga_i : out  std_logic_vector("\
+                    +str(self.__intercon.getTgaBits()-1)+" downto 0);"
+
+            if slave.getTgcSignal():
+                additional += "\n\t\t\t"+slave.getName()+"_tgc_i : out  std_logic_vector("\
+                    +str(self.__intercon.getTgcBits()-1)+" downto 0);"
+
+            if slave.getTgdSignal():
+                additional += "\n\t\t\t"+slave.getName()+"_tgd_i : out std_logic_vector("\
+                    +str(self.__intercon.getTgdBits()-1)+" downto 0);"
+                additional += "\n\t\t\t"+slave.getName()+"_tgd_o : in  std_logic_vector("\
+                    +str(self.__intercon.getTgdBits()-1)+" downto 0);"
+
+            if additional == "":
+                scontent = scontent.replace("%sadditional%", "")
+            else:
+                scontent = scontent.replace("%sadditional%", additional)
+
+            slavedefinitions += scontent+"\n"
+
+        content = content.replace("%slaves%", slavedefinitions)
+
+        with open(self._vhdlinter, "w") as intercon:
+            intercon.write(content)
+
+        

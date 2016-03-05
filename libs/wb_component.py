@@ -394,7 +394,7 @@ properties, which both, master as well as slave components, use'''
             @return: true/false for used/not used on success, None otherwise
         '''
         try:
-            if self._enabled == None:
+            if self._err == None:
                 raise UnboundLocalError("error signal was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getErrorSignal:\n"
@@ -429,7 +429,7 @@ properties, which both, master as well as slave components, use'''
             @return: true/false for used/not used on success, None otherwise
         '''
         try:
-            if self._enabled == None:
+            if self._rty == None:
                 raise UnboundLocalError("retry signal was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getRetrySignal:\n"
@@ -464,7 +464,7 @@ properties, which both, master as well as slave components, use'''
             @return: true/false for used/not used on success, None otherwise
         '''
         try:
-            if self._enabled == None:
+            if self._tga == None:
                 raise UnboundLocalError("tga signal was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getTgaSignal:\n"
@@ -499,7 +499,7 @@ properties, which both, master as well as slave components, use'''
             @return: true/false for used/not used on success, None otherwise
         '''
         try:
-            if self._enabled == None:
+            if self._tgc == None:
                 raise UnboundLocalError("tgc signal was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getTgcSignal:\n"
@@ -534,7 +534,7 @@ properties, which both, master as well as slave components, use'''
             @return: true/false for used/not used on success, None otherwise
         '''
         try:
-            if self._enabled == None:
+            if self._tgd == None:
                 raise UnboundLocalError("tgd signal was not set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getTgdSignal:\n"

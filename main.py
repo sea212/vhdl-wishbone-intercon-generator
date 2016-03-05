@@ -25,6 +25,7 @@ __email__ = "harald.heckmann@student.hs-rm.de"
 __status__ = "Development (alpha)"
 
 if __name__ == '__main__':
-    myclass = WishboneFileManager()
-    myclass.parse()
-    myclass.printConfigContent()
+    wbmngr = WishboneFileManager()
+    wbmngr.parse()
+    wbmngr.printConfigContent()
+    wbmngr.generateIntercon()

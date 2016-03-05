@@ -26,29 +26,66 @@ in this state of development one master object and slave objects '''
 
     def __init__(self):
         ''' initialize the class by initializing all fields '''
-        self.__tgabits = None
-        self.__tgcbits = None
-        self.__tgdbits = None
-        self.__databuswidth = None
-        self.__addressbuswidth = None
-        self.__master = None
-        self.__slaves = set()
+        self._name = "wb_intercon"
+        self._tgabits = None
+        self._tgcbits = None
+        self._tgdbits = None
+        self._databuswidth = None
+        self._addressbuswidth = None
+        self._master = None
+        self._slaves = set()
 
     def __str__(self):
         strrepr = "------------------ Intercon ------------------"\
-                + "\nAmount of TGA bits: "+str(self.__tgabits)\
-                + "\nAmount of TGC bits: "+str(self.__tgcbits)\
-                + "\nAmount of TGD bits: "+str(self.__tgdbits)\
-                + "\nSize of Databus: "+str(self.__databuswidth)\
-                + "\nSize of Addressbus: "+str(self.__addressbuswidth)
+                + "\nName : "+str(self._name)\
+                + "\nAmount of TGA bits: "+str(self._tgabits)\
+                + "\nAmount of TGC bits: "+str(self._tgcbits)\
+                + "\nAmount of TGD bits: "+str(self._tgdbits)\
+                + "\nSize of Databus: "+str(self._databuswidth)\
+                + "\nSize of Addressbus: "+str(self._addressbuswidth)
 
-        if self.__master != None:
-            strrepr += "\n"+str(self.__master)
+        if self._master != None:
+            strrepr += "\n"+str(self._master)
 
-        for slave in self.__slaves:
+        for slave in self._slaves:
             strrepr += "\n"+str(slave)
 
         return strrepr.replace("None", "Not defined")
+
+    def setName(self, name):
+        ''' set a name for the intercon
+            @param name: name to set
+            @type name: String
+            @raise TypeError: raised if parameter type mismatch is found
+            @rtype: Boolean
+            @return: true on success, false otherwise
+        '''
+        try:
+            if not isinstance(name, str):
+                raise TypeError("name got wrong type,"
+                    +"excepted: String, got: "+str(type(name)))
+        except TypeError as e:
+            print("WishboneComponent.setName:\n"
+                +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
+            return False
+
+        self._name = name
+        return True
+
+    def getName(self):
+        ''' get the name of the intercon
+            @raise UnboundLocalError: raised if no name was set yet
+            @rtype: String
+            @return: name on success, None otherwise
+        '''
+        try:
+            if self._name == None:
+                raise UnboundLocalError("Name was not set yet")
+        except UnboundLocalError as e:
+            print("WishboneComponent.getName:\n"
+                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
+
+        return self._name
 
     def setTgaBits(self, tgabits):
         ''' Set amount of tgabits, which can be transfered in intercon
@@ -75,7 +112,7 @@ in this state of development one master object and slave objects '''
                 +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__tgabits = tgabits
+        self._tgabits = tgabits
 
         return True
         
@@ -86,13 +123,13 @@ in this state of development one master object and slave objects '''
             @return: amount of tgabits in intercon on success, None otherwise
         '''
         try:
-            if self.__tgabits == None:
+            if self._tgabits == None:
                 raise UnboundLocalError("amount of tga bits has not been set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getTgaBits:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
-        return self.__tgabits
+        return self._tgabits
 
     def setTgcBits(self, tgcbits):
         ''' Set amount of tgcbits, which can be transfered in intercon
@@ -119,7 +156,7 @@ in this state of development one master object and slave objects '''
                 +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__tgcbits = tgcbits
+        self._tgcbits = tgcbits
 
         return True
         
@@ -131,13 +168,13 @@ in this state of development one master object and slave objects '''
             @return: amount of tgcbits in intercon on success, None otherwise
         '''
         try:
-            if self.__tgcbits == None:
+            if self._tgcbits == None:
                 raise UnboundLocalError("amount of tgc bits has not been set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getTgcBits:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
-        return self.__tgcbits
+        return self._tgcbits
 
 
     def setTgdBits(self, tgdbits):
@@ -165,7 +202,7 @@ in this state of development one master object and slave objects '''
                 +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__tgdbits = tgdbits
+        self._tgdbits = tgdbits
 
         return True
         
@@ -177,13 +214,13 @@ in this state of development one master object and slave objects '''
             @return: amount of tgdbits in intercon on success, None otherwise
         '''
         try:
-            if self.__tgdbits == None:
+            if self._tgdbits == None:
                 raise UnboundLocalError("amount of tgd bits has not been set yet")
         except UnboundLocalError as e:
             print("WishboneComponent.getTgdBits:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
-        return self.__tgdbits
+        return self._tgdbits
 
 
     def setAdressBusWidth(self, width):
@@ -211,7 +248,7 @@ in this state of development one master object and slave objects '''
                 +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__addressbuswidth = width
+        self._addressbuswidth = width
         return True
 
     def getAdressBusWidth(self):
@@ -221,13 +258,13 @@ in this state of development one master object and slave objects '''
             @return: width of addressbus on success, None otherwise
         '''
         try:
-            if self.__addressbuswidth == None:
+            if self._addressbuswidth == None:
                 raise UnboundLocalError("width of addressbus was not set yet")
         except UnboundLocalError as e:
             print("WishboneIntercon.getAdressBusWidth:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
-        return self.__addressbuswidth
+        return self._addressbuswidth
 
 
     def setDataBusWidth(self, width):
@@ -255,7 +292,7 @@ in this state of development one master object and slave objects '''
                 +"\tValueError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__databuswidth = width
+        self._databuswidth = width
         return True
 
     def getDataBusWidth(self):
@@ -265,13 +302,13 @@ in this state of development one master object and slave objects '''
             @return: width of databus on success, None otherwise
         '''
         try:
-            if self.__databuswidth == None:
+            if self._databuswidth == None:
                 raise UnboundLocalError("width of databus was not set yet")
         except UnboundLocalError as e:
             print("WishboneIntercon.getDataBusWidth:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
-        return self.__databuswidth
+        return self._databuswidth
 
     def setMaster(self, wbmaster):
         ''' set the only wishbone master component of intercon
@@ -291,7 +328,7 @@ in this state of development one master object and slave objects '''
                 +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__master = wbmaster
+        self._master = wbmaster
         return True
 
     def getMaster(self):
@@ -302,14 +339,14 @@ in this state of development one master object and slave objects '''
         '''
 
         try:
-            if self.__master == None:
+            if self._master == None:
                 raise UnboundLocalError("no master component was set yet")
         except UnboundLocalError as e:
             print("WishboneIntercon.getMaster:\n"
                 +"UnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
             return WishboneMaster()
 
-        return self.__master
+        return self._master
 
     def addSlave(self, wbslave):
         ''' add a wishbone slave component to intercon
@@ -329,7 +366,7 @@ in this state of development one master object and slave objects '''
                 +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self.__slaves.add(wbslave)
+        self._slaves.add(wbslave)
         return True
 
     def getSlaves(self):
@@ -339,5 +376,5 @@ in this state of development one master object and slave objects '''
             @return: Set containing all slaves for this intercon
         '''
 
-        return self.__slaves
+        return self._slaves
             
