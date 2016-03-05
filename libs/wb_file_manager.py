@@ -204,10 +204,10 @@ a wishbone intercon config file '''
 
         # set optional master signals
         if master.getErrorSignal():
-            additional += "\n\t\t\t"+master.getName()+"_err_i : out  std_logic;"
+            additional += "\n\t\t\t"+master.getName()+"_err_i : out std_logic;"
 
         if master.getRetrySignal():
-            additional += "\n\t\t\t"+master.getName()+"_rty_i : out  std_logic;"
+            additional += "\n\t\t\t"+master.getName()+"_rty_i : out std_logic;"
 
         if master.getTgaSignal():
             additional += "\n\t\t\t"+master.getName()+"_tga_o : in  std_logic_vector("\

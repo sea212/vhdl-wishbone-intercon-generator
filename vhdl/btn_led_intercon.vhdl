@@ -2,7 +2,7 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 2016-03-05 19:04:37.300388
+-- Create Date: 2016-03-05 19:09:18.094206
 -- Design Name: Wishbone intercon
 -- Module Name: btn_led_intercon
 -- Project Name: 
@@ -37,8 +37,8 @@ entity intercon is
             btn_ctrl_sel_o : in  std_logic_vector(4 downto 0);
             btn_ctrl_stb_o : in  std_logic;
             btn_ctrl_we_o  : in  std_logic;
-			btn_ctrl_err_i : out  std_logic;
-			btn_ctrl_rty_i : out  std_logic;
+			btn_ctrl_err_i : out std_logic;
+			btn_ctrl_rty_i : out std_logic;
 			btn_ctrl_tga_o : in  std_logic_vector(2 downto 0);
 			btn_ctrl_tgc_o : in  std_logic_vector(2 downto 0);
 			btn_ctrl_tgd_i : out std_logic_vector(2 downto 0);
@@ -47,12 +47,12 @@ entity intercon is
             -- Wishbone Slaves
             led_ctrl_dat_i : out std_logic_vector(31 downto 0);
             led_ctrl_dat_o : in  std_logic_vector(31 downto 0);
-            led_ctrl_ack_o : in std_logic;
-            led_ctrl_adr_i : out  std_logic_vector(31 downto 0);
-            led_ctrl_cyc_i : out  std_logic;
-            led_ctrl_sel_i : out  std_logic_vector(4 downto 0);
-            led_ctrl_stb_i : out  std_logic;
-            led_ctrl_we_i  : out  std_logic;
+            led_ctrl_ack_o : in  std_logic;
+            led_ctrl_adr_i : out std_logic_vector(31 downto 0);
+            led_ctrl_cyc_i : out std_logic;
+            led_ctrl_sel_i : out std_logic_vector(4 downto 0);
+            led_ctrl_stb_i : out std_logic;
+            led_ctrl_we_i  : out std_logic;
 			led_ctrl_tga_i : out  std_logic_vector(2 downto 0);
 			led_ctrl_tgc_i : out  std_logic_vector(2 downto 0);
 			led_ctrl_tgd_i : out std_logic_vector(2 downto 0);
