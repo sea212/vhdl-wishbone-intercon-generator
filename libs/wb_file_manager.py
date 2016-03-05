@@ -252,11 +252,11 @@ a wishbone intercon config file '''
                 additional += "\n\t\t\t"+slave.getName()+"_rty_o : in  std_logic;"
 
             if slave.getTgaSignal():
-                additional += "\n\t\t\t"+slave.getName()+"_tga_i : out  std_logic_vector("\
+                additional += "\n\t\t\t"+slave.getName()+"_tga_i : out std_logic_vector("\
                     +str(self.__intercon.getTgaBits()-1)+" downto 0);"
 
             if slave.getTgcSignal():
-                additional += "\n\t\t\t"+slave.getName()+"_tgc_i : out  std_logic_vector("\
+                additional += "\n\t\t\t"+slave.getName()+"_tgc_i : out std_logic_vector("\
                     +str(self.__intercon.getTgcBits()-1)+" downto 0);"
 
             if slave.getTgdSignal():

@@ -2,7 +2,7 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 2016-03-05 19:09:18.094206
+-- Create Date: 2016-03-05 19:10:06.229314
 -- Design Name: Wishbone intercon
 -- Module Name: btn_led_intercon
 -- Project Name: 
@@ -53,8 +53,8 @@ entity intercon is
             led_ctrl_sel_i : out std_logic_vector(4 downto 0);
             led_ctrl_stb_i : out std_logic;
             led_ctrl_we_i  : out std_logic;
-			led_ctrl_tga_i : out  std_logic_vector(2 downto 0);
-			led_ctrl_tgc_i : out  std_logic_vector(2 downto 0);
+			led_ctrl_tga_i : out std_logic_vector(2 downto 0);
+			led_ctrl_tgc_i : out std_logic_vector(2 downto 0);
 			led_ctrl_tgd_i : out std_logic_vector(2 downto 0);
 			led_ctrl_tgd_o : in  std_logic_vector(2 downto 0);
 
