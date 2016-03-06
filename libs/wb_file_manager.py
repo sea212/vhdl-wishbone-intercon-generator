@@ -204,40 +204,46 @@ a wishbone intercon config file '''
         additional = ""
         # additional signal definitions
         s_additional = ""
+        # additional signal assignments
+        a_additional = ""
 
         # set optional master signals
         if master.getErrorSignal():
-            additional += "\n\t\t\t"+master.getName()+"_err_i : out std_logic;"
-            s_additional += "\nsignal err: std_logic;"
+            additional += "\n\t\t\t"+master.getName()+"_err_i : out std_logic := '0';"
+            s_additional += "\nsignal err : std_logic;"
 
         if master.getRetrySignal():
-            additional += "\n\t\t\t"+master.getName()+"_rty_i : out std_logic;"
-            s_additional += "\nsignal rty: std_logic;"
+            additional += "\n\t\t\t"+master.getName()+"_rty_i : out std_logic := '0';"
+            s_additional += "\nsignal rty : std_logic;"
 
         if master.getTgaSignal():
             additional += "\n\t\t\t"+master.getName()+"_tga_o : in  std_logic_vector("\
                 +str(self.__intercon.getTgaBits()-1)+" downto 0);"
-            s_additional += "\nsignal tga: std_logic_vector(%d downto 0);" % \
+            s_additional += "\nsignal tga : std_logic_vector(%d downto 0);" % \
                             (self.__intercon.getTgaBits()-1)
+            a_additional += "\n\ttga <= "+master.getName()+"_tga_o"
 
         if master.getTgcSignal():
             additional += "\n\t\t\t"+master.getName()+"_tgc_o : in  std_logic_vector("\
                 +str(self.__intercon.getTgcBits()-1)+" downto 0);"
-            s_additional += "\nsignal tgc: std_logic_vector(%d downto 0);" % \
+            s_additional += "\nsignal tgc : std_logic_vector(%d downto 0);" % \
                             (self.__intercon.getTgcBits()-1)
+            a_additional += "\n\ttgc <= "+master.getName()+"_tgc_o"
 
         if master.getTgdSignal():
             additional += "\n\t\t\t"+master.getName()+"_tgd_i : out std_logic_vector("\
-                +str(self.__intercon.getTgdBits()-1)+" downto 0);"
+                +str(self.__intercon.getTgdBits()-1)+" downto 0) := (others => '0');"
             additional += "\n\t\t\t"+master.getName()+"_tgd_o : in  std_logic_vector("\
                 +str(self.__intercon.getTgdBits()-1)+" downto 0);"
-            s_additional += "\nsignal tgdm2s: std_logic_vector(%d downto 0);" % \
+            s_additional += "\nsignal tgdm2s : std_logic_vector(%d downto 0);" % \
                             (self.__intercon.getTgdBits()-1)
-            s_additional += "\nsignal tgds2m: std_logic_vector(%d downto 0);" % \
+            s_additional += "\nsignal tgds2m : std_logic_vector(%d downto 0);" % \
                             (self.__intercon.getTgdBits()-1)
+            a_additional += "\n\ttgd <= "+master.getName()+"_tgd_o"
 
         content = content.replace("%madditional%", additional)
         content = content.replace("%additonalsignals%", s_additional)
+        content = content.replace("%additional_assignments%", a_additional)
 
         # slave
         with open(self._tmplslave, "r") as template:
@@ -265,15 +271,15 @@ a wishbone intercon config file '''
 
             if slave.getTgaSignal():
                 additional += "\n\t\t\t"+slave.getName()+"_tga_i : out std_logic_vector("\
-                    +str(self.__intercon.getTgaBits()-1)+" downto 0);"
+                    +str(self.__intercon.getTgaBits()-1)+" downto 0) := (others => '0');"
 
             if slave.getTgcSignal():
                 additional += "\n\t\t\t"+slave.getName()+"_tgc_i : out std_logic_vector("\
-                    +str(self.__intercon.getTgcBits()-1)+" downto 0);"
+                    +str(self.__intercon.getTgcBits()-1)+" downto 0) := (others => '0');"
 
             if slave.getTgdSignal():
                 additional += "\n\t\t\t"+slave.getName()+"_tgd_i : out std_logic_vector("\
-                    +str(self.__intercon.getTgdBits()-1)+" downto 0);"
+                    +str(self.__intercon.getTgdBits()-1)+" downto 0) := (others => '0');"
                 additional += "\n\t\t\t"+slave.getName()+"_tgd_o : in  std_logic_vector("\
                     +str(self.__intercon.getTgdBits()-1)+" downto 0);"
 

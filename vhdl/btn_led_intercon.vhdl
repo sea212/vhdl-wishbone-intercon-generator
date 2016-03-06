@@ -2,7 +2,7 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 2016-03-06 14:59:40.270933
+-- Create Date: 2016-03-06 16:48:20.794253
 -- Design Name: Wishbone intercon
 -- Module Name: btn_led_intercon
 -- Project Name: 
@@ -29,33 +29,33 @@ entity intercon is
             rst_i : in std_logic;
 
             -- Wishbone Master
-            btn_ctrl_dat_i : out std_logic_vector(31 downto 0);
+            btn_ctrl_dat_i : out std_logic_vector(31 downto 0) := (others => '0');
             btn_ctrl_dat_o : in  std_logic_vector(31 downto 0);
-            btn_ctrl_ack_i : out std_logic;
+            btn_ctrl_ack_i : out std_logic := '0';
             btn_ctrl_adr_o : in  std_logic_vector(31 downto 0);
             btn_ctrl_cyc_o : in  std_logic;
             btn_ctrl_sel_o : in  std_logic_vector(3 downto 0);
             btn_ctrl_stb_o : in  std_logic;
             btn_ctrl_we_o  : in  std_logic;
-			btn_ctrl_err_i : out std_logic;
-			btn_ctrl_rty_i : out std_logic;
+			btn_ctrl_err_i : out std_logic := '0';
+			btn_ctrl_rty_i : out std_logic := '0';
 			btn_ctrl_tga_o : in  std_logic_vector(2 downto 0);
 			btn_ctrl_tgc_o : in  std_logic_vector(2 downto 0);
-			btn_ctrl_tgd_i : out std_logic_vector(2 downto 0);
+			btn_ctrl_tgd_i : out std_logic_vector(2 downto 0) := (others => '0');
 			btn_ctrl_tgd_o : in  std_logic_vector(2 downto 0);
 
             -- Wishbone Slaves
-            led_ctrl_dat_i : out std_logic_vector(31 downto 0);
+            led_ctrl_dat_i : out std_logic_vector(31 downto 0) := (others => '0');
             led_ctrl_dat_o : in  std_logic_vector(31 downto 0);
             led_ctrl_ack_o : in  std_logic;
-            led_ctrl_adr_i : out std_logic_vector(31 downto 0);
-            led_ctrl_cyc_i : out std_logic;
-            led_ctrl_sel_i : out std_logic_vector(3 downto 0);
-            led_ctrl_stb_i : out std_logic;
-            led_ctrl_we_i  : out std_logic;
-			led_ctrl_tga_i : out std_logic_vector(2 downto 0);
-			led_ctrl_tgc_i : out std_logic_vector(2 downto 0);
-			led_ctrl_tgd_i : out std_logic_vector(2 downto 0);
+            led_ctrl_adr_i : out std_logic_vector(31 downto 0) := (others => '0');
+            led_ctrl_cyc_i : out std_logic := '0';
+            led_ctrl_sel_i : out std_logic_vector(3 downto 0) := (others => '0');
+            led_ctrl_stb_i : out std_logic := '0';
+            led_ctrl_we_i  : out std_logic := '0';
+			led_ctrl_tga_i : out std_logic_vector(2 downto 0) := (others => '0');
+			led_ctrl_tgc_i : out std_logic_vector(2 downto 0) := (others => '0');
+			led_ctrl_tgd_i : out std_logic_vector(2 downto 0) := (others => '0');
 			led_ctrl_tgd_o : in  std_logic_vector(2 downto 0);
 
 
@@ -64,37 +64,45 @@ end intercon;
 
 architecture Behavioral of intercon is
 
--- define required signals TODO
-signal adr: std_logic_vector(31 downto 0);
-signal datm2s, dats2m: std_logic_vector(31 downto 0);
-signal sel: std_logic_vector(3 downto 0);
+-- define required signals
+signal adr : std_logic_vector(31 downto 0);
+signal datm2s, dats2m : std_logic_vector(31 downto 0);
+signal sel : std_logic_vector(3 downto 0);
 
 -- define required 1-bit signals
-signal we, stb, ack, cyc: std_logic;
+signal we, stb, ack, cyc : std_logic;
 
 -- define additional signals (err,rty,tga,tgc,tgd)
-
-signal err: std_logic;
-signal rty: std_logic;
-signal tga: std_logic_vector(2 downto 0);
-signal tgc: std_logic_vector(2 downto 0);
-signal tgdm2s: std_logic_vector(2 downto 0);
-signal tgds2m: std_logic_vector(2 downto 0);
+signal err : std_logic;
+signal rty : std_logic;
+signal tga : std_logic_vector(2 downto 0);
+signal tgc : std_logic_vector(2 downto 0);
+signal tgdm2s : std_logic_vector(2 downto 0);
+signal tgds2m : std_logic_vector(2 downto 0);
 
 begin
+    datm2s <= btn_ctrl_dat_o;
+    adr <= btn_ctrl_adr_o;
+    sel <= btn_ctrl_sel_o;
+    we <= btn_ctrl_we_o;
+	tga <= btn_ctrl_tga_o
+	tgc <= btn_ctrl_tgc_o
+	tgd <= btn_ctrl_tgd_o
+
     -- interconnect
     interconnect : process (clk_i, rst_i)
     begin
         if (rising_edge(clk)) then
             if (rst_i = '1') then
-                --reset
-                stb <= 0;
-                cyc <= 0;
+                --synchronous reset
+                stb <= '0';
+                cyc <= '0';
             else
-                -- address decoder (slave select)
-                %address_decoder%
+                stb <= btn_ctrl_stb_o;
+                cyc <= btn_ctrl_cyc_o;
 
-                -- interconnection
+                -- address decoder (slave select) = ifs
+                -- interconnection = inside ifs
                 %interconnection%
-    end
+    end interconnect
 end Behavioral;
