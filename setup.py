@@ -5,7 +5,8 @@
 
 __author__ = "Harald Heckmann"
 __copyright__ = "Copyright 2016"
-__credits__ = ["Prof. Dr. Steffen Reith", "Harald Heckmann"]
+__credits__ = ["Prof. Dr. Steffen Reith (steffen.reith@hs-rm.de)", \
+                "Harald Heckmann (harald.heckmann@student.hs-rm.de)"]
 __license__ = "GPLv3"
 __version__ = "1.0.0"
 __maintainer__ = "Harald Heckmann"

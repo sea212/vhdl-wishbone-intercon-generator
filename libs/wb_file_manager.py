@@ -16,7 +16,7 @@ and generate an intercon in vhdl '''
 
 __author__ = "Harald Heckmann"
 __copyright__ = "Copyright 2016"
-__credits__ = ["Prof. Dr. Steffen Reith (steffen.reith@hs-rm,de)", \
+__credits__ = ["Prof. Dr. Steffen Reith (steffen.reith@hs-rm.de)", \
                 "Harald Heckmann (harald.heckmann@student.hs-rm.de)"]
 __license__ = "GPLv3"
 __version__ = "1.0.0"
@@ -69,7 +69,7 @@ a wishbone intercon config file '''
                     elif keyl == "data_bus_width":
                         self.__intercon.setDataBusWidth(int(self.__config[section][key]))
                     elif keyl == "address_bus_width":
-                        self.__intercon.setAdressBusWidth(int(self.__config[section][key]))
+                        self.__intercon.setAddressBusWidth(int(self.__config[section][key]))
                     else:
                         raise configparser.Error("unknown key: "+key)
 
@@ -198,41 +198,53 @@ a wishbone intercon config file '''
         content = content.replace("%mname%", master.getName())
         content = content.replace("%mdbwidth%", str(master.getDataBusWidth()-1))
         content = content.replace("%madwidth%", str(master.getAddressBusWidth()-1))
-        content = content.replace("%mselwidth%", str((master.getDataBusWidth() >> 3)))
+        content = content.replace("%mselwidth%", str((master.getDataBusWidth() >> 3)-1))
         
+        # additional port definitions
         additional = ""
+        # additional signal definitions
+        s_additional = ""
 
         # set optional master signals
         if master.getErrorSignal():
             additional += "\n\t\t\t"+master.getName()+"_err_i : out std_logic;"
+            s_additional += "\nsignal err: std_logic;"
 
         if master.getRetrySignal():
             additional += "\n\t\t\t"+master.getName()+"_rty_i : out std_logic;"
+            s_additional += "\nsignal rty: std_logic;"
 
         if master.getTgaSignal():
             additional += "\n\t\t\t"+master.getName()+"_tga_o : in  std_logic_vector("\
                 +str(self.__intercon.getTgaBits()-1)+" downto 0);"
+            s_additional += "\nsignal tga: std_logic_vector(%d downto 0);" % \
+                            (self.__intercon.getTgaBits()-1)
 
         if master.getTgcSignal():
             additional += "\n\t\t\t"+master.getName()+"_tgc_o : in  std_logic_vector("\
                 +str(self.__intercon.getTgcBits()-1)+" downto 0);"
+            s_additional += "\nsignal tgc: std_logic_vector(%d downto 0);" % \
+                            (self.__intercon.getTgcBits()-1)
 
         if master.getTgdSignal():
             additional += "\n\t\t\t"+master.getName()+"_tgd_i : out std_logic_vector("\
                 +str(self.__intercon.getTgdBits()-1)+" downto 0);"
             additional += "\n\t\t\t"+master.getName()+"_tgd_o : in  std_logic_vector("\
                 +str(self.__intercon.getTgdBits()-1)+" downto 0);"
+            s_additional += "\nsignal tgdm2s: std_logic_vector(%d downto 0);" % \
+                            (self.__intercon.getTgdBits()-1)
+            s_additional += "\nsignal tgds2m: std_logic_vector(%d downto 0);" % \
+                            (self.__intercon.getTgdBits()-1)
 
-        if additional == "":
-            content = content.replace("%madditional%", "")
-        else:
-            content = content.replace("%madditional%", additional)
+        content = content.replace("%madditional%", additional)
+        content = content.replace("%additonalsignals%", s_additional)
 
         # slave
         with open(self._tmplslave, "r") as template:
             fb_scontent = template.read()
 
         slavedefinitions = ""
+        busgrant = ""
 
         for slave in self.__intercon.getSlaves():
             scontent = copy(fb_scontent)
@@ -240,7 +252,7 @@ a wishbone intercon config file '''
             scontent = scontent.replace("%sdbwidth%", str(slave.getDataBusWidth()-1))
             scontent = scontent.replace("%sadhi%", str(slave.getHighestAddressBit()))
             scontent = scontent.replace("%sadlo%", str(slave.getLowestAddressBit()))
-            scontent = scontent.replace("%sselwidth%", str((slave.getDataBusWidth() >> 3)))
+            scontent = scontent.replace("%sselwidth%", str((slave.getDataBusWidth() >> 3)-1))
 
             additional = ""
 
@@ -265,14 +277,16 @@ a wishbone intercon config file '''
                 additional += "\n\t\t\t"+slave.getName()+"_tgd_o : in  std_logic_vector("\
                     +str(self.__intercon.getTgdBits()-1)+" downto 0);"
 
-            if additional == "":
-                scontent = scontent.replace("%sadditional%", "")
-            else:
-                scontent = scontent.replace("%sadditional%", additional)
-
-            slavedefinitions += scontent+"\n"
+            slavedefinitions += scontent.replace("%sadditional%", additional)+"\n"
+            
 
         content = content.replace("%slaves%", slavedefinitions)
+
+        # signal definitions
+        # required signals
+        content = content.replace("%intabwidth%", str(self.__intercon.getAddressBusWidth()-1))
+        content = content.replace("%intdbwidth%", str(self.__intercon.getDataBusWidth()-1))
+        content = content.replace("%selwidth%", str((self.__intercon.getDataBusWidth() >> 3)-1))
 
         with open(self._vhdlinter, "w") as intercon:
             intercon.write(content)

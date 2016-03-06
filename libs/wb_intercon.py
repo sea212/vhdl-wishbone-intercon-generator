@@ -12,7 +12,8 @@ and generate an intercon in vhdl '''
 
 __author__ = "Harald Heckmann"
 __copyright__ = "Copyright 2016"
-__credits__ = ["Prof. Dr. Steffen Reith", "Harald Heckmann"]
+__credits__ = ["Prof. Dr. Steffen Reith (steffen.reith@hs-rm.de)", \
+                "Harald Heckmann (harald.heckmann@student.hs-rm.de)"]
 __license__ = "GPLv3"
 __version__ = "1.0.0"
 __maintainer__ = "Harald Heckmann"
@@ -69,7 +70,7 @@ in this state of development one master object and slave objects '''
                 +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self._name = name
+        self._name = name.replace(" ", "_")
         return True
 
     def getName(self):
@@ -223,7 +224,7 @@ in this state of development one master object and slave objects '''
         return self._tgdbits
 
 
-    def setAdressBusWidth(self, width):
+    def setAddressBusWidth(self, width):
         ''' Set the width of the addressbus of the intercon
             @param width: bus width in bits (decimal)
             @type width: Integer
@@ -240,7 +241,7 @@ in this state of development one master object and slave objects '''
                 if width < 0:
                     raise ValueError("Buswidth cannot be negative")
         except TypeError as e:
-            print("WishboneIntercon.setAdressBusWidth:\n"
+            print("WishboneIntercon.setAddressBusWidth:\n"
                 +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
         except ValueError as e:
@@ -251,7 +252,7 @@ in this state of development one master object and slave objects '''
         self._addressbuswidth = width
         return True
 
-    def getAdressBusWidth(self):
+    def getAddressBusWidth(self):
         ''' get the width of the addressbus
             @raise UnboundLocalError: raised if no width for addressbus was set yet
             @rtype: Integer
@@ -261,7 +262,7 @@ in this state of development one master object and slave objects '''
             if self._addressbuswidth == None:
                 raise UnboundLocalError("width of addressbus was not set yet")
         except UnboundLocalError as e:
-            print("WishboneIntercon.getAdressBusWidth:\n"
+            print("WishboneIntercon.getAddressBusWidth:\n"
                 +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self._addressbuswidth

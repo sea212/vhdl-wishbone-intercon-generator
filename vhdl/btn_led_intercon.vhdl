@@ -2,7 +2,7 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 2016-03-05 19:10:06.229314
+-- Create Date: 2016-03-06 14:59:40.270933
 -- Design Name: Wishbone intercon
 -- Module Name: btn_led_intercon
 -- Project Name: 
@@ -25,8 +25,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity intercon is
     Port (  -- General intercon signals
-            clk_i : in STD_LOGIC;
-            rst_i : in STD_LOGIC;
+            clk_i : in std_logic;
+            rst_i : in std_logic;
 
             -- Wishbone Master
             btn_ctrl_dat_i : out std_logic_vector(31 downto 0);
@@ -34,7 +34,7 @@ entity intercon is
             btn_ctrl_ack_i : out std_logic;
             btn_ctrl_adr_o : in  std_logic_vector(31 downto 0);
             btn_ctrl_cyc_o : in  std_logic;
-            btn_ctrl_sel_o : in  std_logic_vector(4 downto 0);
+            btn_ctrl_sel_o : in  std_logic_vector(3 downto 0);
             btn_ctrl_stb_o : in  std_logic;
             btn_ctrl_we_o  : in  std_logic;
 			btn_ctrl_err_i : out std_logic;
@@ -50,7 +50,7 @@ entity intercon is
             led_ctrl_ack_o : in  std_logic;
             led_ctrl_adr_i : out std_logic_vector(31 downto 0);
             led_ctrl_cyc_i : out std_logic;
-            led_ctrl_sel_i : out std_logic_vector(4 downto 0);
+            led_ctrl_sel_i : out std_logic_vector(3 downto 0);
             led_ctrl_stb_i : out std_logic;
             led_ctrl_we_i  : out std_logic;
 			led_ctrl_tga_i : out std_logic_vector(2 downto 0);
@@ -65,18 +65,21 @@ end intercon;
 architecture Behavioral of intercon is
 
 -- define required signals TODO
-signal adr: std_logic_vector(%intabwidth% downto 0);
-signal datm2s, dats2m: std_logic_vector(%intdbwidth% downto 0);
-signal sel: std_logic_vector(%selwidth% downto 0);
+signal adr: std_logic_vector(31 downto 0);
+signal datm2s, dats2m: std_logic_vector(31 downto 0);
+signal sel: std_logic_vector(3 downto 0);
+
+-- define required 1-bit signals
+signal we, stb, ack, cyc: std_logic;
 
 -- define additional signals (err,rty,tga,tgc,tgd)
-%additonalsignals%
 
--- define 1-bit signals
-signal we, stb, ack, cyc, tagn1, tagn2: std_logic;
-
--- define bus grant signals
-%busgrant%
+signal err: std_logic;
+signal rty: std_logic;
+signal tga: std_logic_vector(2 downto 0);
+signal tgc: std_logic_vector(2 downto 0);
+signal tgdm2s: std_logic_vector(2 downto 0);
+signal tgds2m: std_logic_vector(2 downto 0);
 
 begin
     -- interconnect
@@ -85,6 +88,8 @@ begin
         if (rising_edge(clk)) then
             if (rst_i = '1') then
                 --reset
+                stb <= 0;
+                cyc <= 0;
             else
                 -- address decoder (slave select)
                 %address_decoder%

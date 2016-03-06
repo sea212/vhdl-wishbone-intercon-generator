@@ -25,8 +25,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity intercon is
     Port (  -- General intercon signals
-            clk_i : in STD_LOGIC;
-            rst_i : in STD_LOGIC;
+            clk_i : in std_logic;
+            rst_i : in std_logic;
 
             -- Wishbone Master
             %mname%_dat_i : out std_logic_vector(%mdbwidth% downto 0);
@@ -50,14 +50,11 @@ signal adr: std_logic_vector(%intabwidth% downto 0);
 signal datm2s, dats2m: std_logic_vector(%intdbwidth% downto 0);
 signal sel: std_logic_vector(%selwidth% downto 0);
 
+-- define required 1-bit signals
+signal we, stb, ack, cyc: std_logic;
+
 -- define additional signals (err,rty,tga,tgc,tgd)
 %additonalsignals%
-
--- define 1-bit signals
-signal we, stb, ack, cyc, tagn1, tagn2: std_logic;
-
--- define bus grant signals
-%busgrant%
 
 begin
     -- interconnect
@@ -65,7 +62,9 @@ begin
     begin
         if (rising_edge(clk)) then
             if (rst_i = '1') then
-                --reset
+                --synchronous reset
+                stb <= 0;
+                cyc <= 0;
             else
                 -- address decoder (slave select)
                 %address_decoder%

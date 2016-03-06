@@ -9,7 +9,8 @@ master and slave modules, which can be processed afterwards '''
 
 __author__ = "Harald Heckmann"
 __copyright__ = "Copyright 2016"
-__credits__ = ["Prof. Dr. Steffen Reith", "Harald Heckmann"]
+__credits__ = ["Prof. Dr. Steffen Reith (steffen.reith@hs-rm.de)", \
+                "Harald Heckmann (harald.heckmann@student.hs-rm.de)"]
 __license__ = "GPLv3"
 __version__ = "1.0.0"
 __maintainer__ = "Harald Heckmann"
@@ -163,7 +164,7 @@ properties, which both, master as well as slave components, use'''
                 +"\tTypeError occurred: "+e.args[0]+"\nstopping execution")
             return False
 
-        self._name = name
+        self._name = name.replace(" ", "_")
         return True
 
     def getName(self):
