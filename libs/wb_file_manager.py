@@ -181,7 +181,7 @@ a wishbone intercon config file '''
     def printConfigContent(self):
         ''' print parsed information nicely to console '''
         print(self.__intercon)
-        
+
     
     def generateIntercon(self):
         ''' generate intercon and write it to a vhdl file'''
@@ -210,36 +210,39 @@ a wishbone intercon config file '''
         # set optional master signals
         if master.getErrorSignal():
             additional += "\n\t\t\t"+master.getName()+"_err_i : out std_logic := '0';"
-            s_additional += "\nsignal err : std_logic;"
+            s_additional += "\nsignal err : std_logic := '0';"
+            a_additional += "\n\t"+master.getName()+"_err_i <= err;"
 
         if master.getRetrySignal():
             additional += "\n\t\t\t"+master.getName()+"_rty_i : out std_logic := '0';"
-            s_additional += "\nsignal rty : std_logic;"
+            s_additional += "\nsignal rty : std_logic := '0';"
+            a_additional += "\n\t"+master.getName()+"_rty_i <= rty;"
 
         if master.getTgaSignal():
             additional += "\n\t\t\t"+master.getName()+"_tga_o : in  std_logic_vector("\
                 +str(self.__intercon.getTgaBits()-1)+" downto 0);"
-            s_additional += "\nsignal tga : std_logic_vector(%d downto 0);" % \
+            s_additional += "\nsignal tga : std_logic_vector(%d downto 0) := (others => '0');" % \
                             (self.__intercon.getTgaBits()-1)
-            a_additional += "\n\ttga <= "+master.getName()+"_tga_o"
+            a_additional += "\n\ttga <= "+master.getName()+"_tga_o;"
 
         if master.getTgcSignal():
             additional += "\n\t\t\t"+master.getName()+"_tgc_o : in  std_logic_vector("\
                 +str(self.__intercon.getTgcBits()-1)+" downto 0);"
-            s_additional += "\nsignal tgc : std_logic_vector(%d downto 0);" % \
+            s_additional += "\nsignal tgc : std_logic_vector(%d downto 0) := (others => '0');" % \
                             (self.__intercon.getTgcBits()-1)
-            a_additional += "\n\ttgc <= "+master.getName()+"_tgc_o"
+            a_additional += "\n\ttgc <= "+master.getName()+"_tgc_o;"
 
         if master.getTgdSignal():
             additional += "\n\t\t\t"+master.getName()+"_tgd_i : out std_logic_vector("\
                 +str(self.__intercon.getTgdBits()-1)+" downto 0) := (others => '0');"
             additional += "\n\t\t\t"+master.getName()+"_tgd_o : in  std_logic_vector("\
                 +str(self.__intercon.getTgdBits()-1)+" downto 0);"
-            s_additional += "\nsignal tgdm2s : std_logic_vector(%d downto 0);" % \
+            s_additional += "\nsignal tgdm2s : std_logic_vector(%d downto 0) := (others => '0');" % \
                             (self.__intercon.getTgdBits()-1)
-            s_additional += "\nsignal tgds2m : std_logic_vector(%d downto 0);" % \
+            s_additional += "\nsignal tgds2m : std_logic_vector(%d downto 0) := (others => '0');" % \
                             (self.__intercon.getTgdBits()-1)
-            a_additional += "\n\ttgd <= "+master.getName()+"_tgd_o"
+            a_additional += "\n\ttgdm2s <= "+master.getName()+"_tgd_o;"
+            a_additional += "\n\t"+master.getName()+"_tgd_i <= tgds2m;"
 
         content = content.replace("%madditional%", additional)
         content = content.replace("%additonalsignals%", s_additional)
@@ -250,9 +253,13 @@ a wishbone intercon config file '''
             fb_scontent = template.read()
 
         slavedefinitions = ""
-        busgrant = ""
 
-        for slave in self.__intercon.getSlaves():
+        slavenr = 1;
+
+        # address decoder and interconnection
+        interconnection = ""
+
+        for slave in sorted(self.__intercon.getSlaves()):
             scontent = copy(fb_scontent)
             scontent = scontent.replace("%sname%", slave.getName())
             scontent = scontent.replace("%sdbwidth%", str(slave.getDataBusWidth()-1))
@@ -262,31 +269,61 @@ a wishbone intercon config file '''
 
             additional = ""
 
+            # define address decoder and interconnection
+            if slavenr == 1:
+                slavenr += 1
+                interconnection += "\n\t\t\t\t\t-- Baseadress: "+hex(slave.getBaseAddress())\
+                                + ", size: "+hex(slave.getAddressSize())
+                interconnection += "\n\t\t\t\t\tif (to_integer(unsigned(adr)) <= \""\
+                        +str((slave.getBaseAddress()+slave.getAddressSize()))\
+                        +"\") then"
+            else:
+                interconnection += "\n\t\t\t\t\telsif (to_integer(unsigned(adr)) <= \""\
+                        +str((slave.getBaseAddress()+slave.getAddressSize()))\
+                        +"\") then"
+
+            interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_dat_i <= datm2s;"
+            interconnection += "\n\t\t\t\t\t\tdats2m <= "+slave.getName()+"_dat_o;"
+            interconnection += "\n\t\t\t\t\t\tack <= "+slave.getName()+"_ack_o;"
+            interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_adr_i <= adr;"
+            interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_cyc_i <= cyc;"
+            interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_sel_i <= sel;"
+            interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_stb_i <= stb;"
+            interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_we_i <= we;"
+
             # set optional slave signals
             if slave.getErrorSignal():
-                additional += "\n\t\t\t"+slave.getName()+"_err_o : in  std_logic;"
+                additional += ";\n\t\t\t"+slave.getName()+"_err_o : in  std_logic"
+                interconnection += "\n\t\t\t\t\t\terr <= "+slave.getName()+"_err_o;"
 
             if slave.getRetrySignal():
-                additional += "\n\t\t\t"+slave.getName()+"_rty_o : in  std_logic;"
+                additional += ";\n\t\t\t"+slave.getName()+"_rty_o : in  std_logic"
+                interconnection += "\n\t\t\t\t\t\trty <= "+slave.getName()+"_rty_o;"
 
             if slave.getTgaSignal():
-                additional += "\n\t\t\t"+slave.getName()+"_tga_i : out std_logic_vector("\
-                    +str(self.__intercon.getTgaBits()-1)+" downto 0) := (others => '0');"
+                additional += ";\n\t\t\t"+slave.getName()+"_tga_i : out std_logic_vector("\
+                    +str(self.__intercon.getTgaBits()-1)+" downto 0) := (others => '0')"
+                interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_tga_i <= tga;"
 
             if slave.getTgcSignal():
-                additional += "\n\t\t\t"+slave.getName()+"_tgc_i : out std_logic_vector("\
-                    +str(self.__intercon.getTgcBits()-1)+" downto 0) := (others => '0');"
+                additional += ";\n\t\t\t"+slave.getName()+"_tgc_i : out std_logic_vector("\
+                    +str(self.__intercon.getTgcBits()-1)+" downto 0) := (others => '0')"
+                interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_tgc_i <= tgc;"
 
             if slave.getTgdSignal():
-                additional += "\n\t\t\t"+slave.getName()+"_tgd_i : out std_logic_vector("\
-                    +str(self.__intercon.getTgdBits()-1)+" downto 0) := (others => '0');"
-                additional += "\n\t\t\t"+slave.getName()+"_tgd_o : in  std_logic_vector("\
-                    +str(self.__intercon.getTgdBits()-1)+" downto 0);"
+                additional += ";\n\t\t\t"+slave.getName()+"_tgd_i : out std_logic_vector("\
+                    +str(self.__intercon.getTgdBits()-1)+" downto 0) := (others => '0')"
+                additional += ";\n\t\t\t"+slave.getName()+"_tgd_o : in  std_logic_vector("\
+                    +str(self.__intercon.getTgdBits()-1)+" downto 0)"
+                interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_tgd_i <= tgdm2s;"
+                interconnection += "\n\t\t\t\t\t\ttgds2m <= "+slave.getName()+"_tgd_o;"
 
             slavedefinitions += scontent.replace("%sadditional%", additional)+"\n"
             
 
+        interconnection += "\n\t\t\t\t\telse\n\t\t\t\t\t\tnull;\n\t\t\t\t\tend if;"
         content = content.replace("%slaves%", slavedefinitions)
+        content = content.replace("%interconnection%", interconnection)
 
         # signal definitions
         # required signals

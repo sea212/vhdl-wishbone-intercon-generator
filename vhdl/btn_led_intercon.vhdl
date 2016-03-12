@@ -2,7 +2,7 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 2016-03-06 16:48:20.794253
+-- Create Date: 2016-03-12 17:31:52.556021
 -- Design Name: Wishbone intercon
 -- Module Name: btn_led_intercon
 -- Project Name: 
@@ -21,7 +21,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
---use IEEE.NUMERIC_STD.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 entity intercon is
     Port (  -- General intercon signals
@@ -53,56 +53,89 @@ entity intercon is
             led_ctrl_sel_i : out std_logic_vector(3 downto 0) := (others => '0');
             led_ctrl_stb_i : out std_logic := '0';
             led_ctrl_we_i  : out std_logic := '0';
+			led_ctrl_err_o : in  std_logic;
+			led_ctrl_rty_o : in  std_logic;
 			led_ctrl_tga_i : out std_logic_vector(2 downto 0) := (others => '0');
 			led_ctrl_tgc_i : out std_logic_vector(2 downto 0) := (others => '0');
 			led_ctrl_tgd_i : out std_logic_vector(2 downto 0) := (others => '0');
-			led_ctrl_tgd_o : in  std_logic_vector(2 downto 0);
+			led_ctrl_tgd_o : in  std_logic_vector(2 downto 0)
 
 
-        )
+        );
 end intercon;
 
 architecture Behavioral of intercon is
 
 -- define required signals
-signal adr : std_logic_vector(31 downto 0);
-signal datm2s, dats2m : std_logic_vector(31 downto 0);
-signal sel : std_logic_vector(3 downto 0);
+signal adr : std_logic_vector(31 downto 0) := (others => '0');
+signal datm2s, dats2m : std_logic_vector(31 downto 0) := (others => '0');
+signal sel : std_logic_vector(3 downto 0) := (others => '0');
 
 -- define required 1-bit signals
-signal we, stb, ack, cyc : std_logic;
+signal we, stb, ack, cyc : std_logic := '0';
 
 -- define additional signals (err,rty,tga,tgc,tgd)
-signal err : std_logic;
-signal rty : std_logic;
-signal tga : std_logic_vector(2 downto 0);
-signal tgc : std_logic_vector(2 downto 0);
-signal tgdm2s : std_logic_vector(2 downto 0);
-signal tgds2m : std_logic_vector(2 downto 0);
+signal err : std_logic := '0';
+signal rty : std_logic := '0';
+signal tga : std_logic_vector(2 downto 0) := (others => '0');
+signal tgc : std_logic_vector(2 downto 0) := (others => '0');
+signal tgdm2s : std_logic_vector(2 downto 0) := (others => '0');
+signal tgds2m : std_logic_vector(2 downto 0) := (others => '0');
 
 begin
     datm2s <= btn_ctrl_dat_o;
     adr <= btn_ctrl_adr_o;
     sel <= btn_ctrl_sel_o;
+    stb <= btn_ctrl_stb_o;
+    cyc <= btn_ctrl_cyc_o;
     we <= btn_ctrl_we_o;
-	tga <= btn_ctrl_tga_o
-	tgc <= btn_ctrl_tgc_o
-	tgd <= btn_ctrl_tgd_o
+    btn_ctrl_dat_i <= dats2m;
+    btn_ctrl_ack_i <= ack;
+	btn_ctrl_err_i <= err;
+	btn_ctrl_rty_i <= rty;
+	tga <= btn_ctrl_tga_o;
+	tgc <= btn_ctrl_tgc_o;
+	tgdm2s <= btn_ctrl_tgd_o;
+	btn_ctrl_tgd_i <= tgds2m;
 
     -- interconnect
-    interconnect : process (clk_i, rst_i)
+    interconnect : process (clk_i, rst_i, cyc)
     begin
-        if (rising_edge(clk)) then
+        if (rising_edge(clk_i)) then
             if (rst_i = '1') then
                 --synchronous reset
                 stb <= '0';
                 cyc <= '0';
             else
-                stb <= btn_ctrl_stb_o;
-                cyc <= btn_ctrl_cyc_o;
-
-                -- address decoder (slave select) = ifs
-                -- interconnection = inside ifs
-                %interconnection%
-    end interconnect
+                if (cyc = '1') then
+                    -- address decoder (slave select) = ifs
+                    -- interconnection = inside ifs
+                    
+					-- Baseadress: 0x0, size: 0x100000
+					if (to_integer(unsigned(adr)) <= "1048576") then
+						led_ctrl_dat_i <= datm2s;
+						dats2m <= led_ctrl_dat_o;
+						ack <= led_ctrl_ack_o;
+						led_ctrl_adr_i <= adr;
+						led_ctrl_cyc_i <= cyc;
+						led_ctrl_sel_i <= sel;
+						led_ctrl_stb_i <= stb;
+						led_ctrl_we_i <= we;
+						err <= led_ctrl_err_o;
+						rty <= led_ctrl_rty_o;
+						led_ctrl_tga_i <= tga;
+						led_ctrl_tgc_i <= tgc;
+						led_ctrl_tgd_i <= tgdm2s;
+						tgds2m <= led_ctrl_tgd_o;
+					else
+						null;
+					end if;
+                else
+                    null;
+                end if;
+            end if;
+        else
+            null;
+        end if;
+    end process interconnect;
 end Behavioral;

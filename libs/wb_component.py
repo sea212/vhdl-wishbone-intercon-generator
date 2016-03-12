@@ -663,6 +663,40 @@ component, but not in a master'''
                 
         return strrepr.replace("None", "Not defined")
 
+    def __lt__(self,other):
+        bad = self.getBaseAddress()
+        obad = other.getBaseAddress()
+
+        if (bad == None or obad == None): 
+            return False
+        else: 
+            return bad<obad
+
+    def __eq__(self,other):
+        bad = self.getBaseAddress()
+        obad = other.getBaseAddress()
+
+        if (bad == None or obad == None): 
+            return False
+        else: 
+            return bad==obad
+
+    def __cmp__(self,other):
+        if self.__lt__(self,other):
+            return -1
+        else:
+            if self.__eq__(self,other):
+                return 0
+            else:
+                return 1
+
+    def __hash__(self):
+        bad = self.getBaseAddress()
+        if (bad == None): 
+            return 0
+        else: 
+            return bad
+
     def setBaseAddress(self, baseadr):
         ''' Set the base address of a wishbone slave component
             @param baseadr: Base address for slave
