@@ -1,7 +1,7 @@
-%sname%_dat_i : out std_logic_vector(%sdbwidth% downto 0) := (others => '0');
+            %sname%_dat_i : out std_logic_vector(%sdbwidth% downto 0) := (others => '0');
             %sname%_dat_o : in  std_logic_vector(%sdbwidth% downto 0);
-            %sname%_ack_o : in  std_logic;
             %sname%_adr_i : out std_logic_vector(%sadhi% downto %sadlo%) := (others => '0');
+            %sname%_ack_o : in  std_logic;
             %sname%_cyc_i : out std_logic := '0';
             %sname%_sel_i : out std_logic_vector(%sselwidth% downto 0) := (others => '0');
             %sname%_stb_i : out std_logic := '0';

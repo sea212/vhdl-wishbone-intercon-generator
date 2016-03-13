@@ -22,7 +22,7 @@ __license__ = "GPLv3"
 __version__ = "1.0.0"
 __maintainer__ = "Harald Heckmann"
 __email__ = "harald.heckmann@student.hs-rm.de"
-__status__ = "Development (alpha)"
+__status__ = "Development (beta)"
 
 class WishboneFileManager:
     ''' WishboneFileManager is a class offering functions to properly parse
@@ -51,6 +51,10 @@ a wishbone intercon config file '''
                 wbcomp = WishboneMaster()
             elif "slave" in secl:
                 wbcomp = WishboneSlave()
+            elif "general" in secl: 
+                pass
+            else:
+                raise configparser.Error("unknown section: "+section)
 
             for key in self.__config[section]:
                 keyl = key.lower()
@@ -173,10 +177,8 @@ a wishbone intercon config file '''
                         else:
                             raise configparser.Error("unknown key: "+key)
 
-                    if "master" in secl: self.__intercon.setMaster(wbcomp)
-                    elif "slave" in secl: self.__intercon.addSlave(wbcomp)
-                else:
-                    raise configparser.Error("unknown section: "+section)
+            if "master" in secl: self.__intercon.setMaster(wbcomp)
+            elif "slave" in secl: self.__intercon.addSlave(wbcomp)
 
     def printConfigContent(self):
         ''' print parsed information nicely to console '''
@@ -254,10 +256,13 @@ a wishbone intercon config file '''
 
         slavedefinitions = ""
 
-        slavenr = 1;
+        slavenr = 0;
+        slavemax = len(self.__intercon.getSlaves())
 
         # address decoder and interconnection
         interconnection = ""
+        # prevent latches when cyc is low (no valid cycle)
+        antilatch = "\n\t\t\t\t\t\t-- prevent latches on invalid slave selection"
 
         for slave in sorted(self.__intercon.getSlaves()):
             scontent = copy(fb_scontent)
@@ -270,26 +275,70 @@ a wishbone intercon config file '''
             additional = ""
 
             # define address decoder and interconnection
-            if slavenr == 1:
-                slavenr += 1
-                interconnection += "\n\t\t\t\t\t-- Baseadress: "+hex(slave.getBaseAddress())\
+            if slavenr == 0:
+                interconnection += "\n\t\t\t\t\t-- Baseaddress: "+hex(slave.getBaseAddress())\
                                 + ", size: "+hex(slave.getAddressSize())
-                interconnection += "\n\t\t\t\t\tif (to_integer(unsigned(adr)) <= \""\
-                        +str((slave.getBaseAddress()+slave.getAddressSize()))\
-                        +"\") then"
+                interconnection += "\n\t\t\t\t\tif (to_integer(unsigned(adr)) <= "\
+                        +str((slave.getBaseAddress()+slave.getAddressSize()))+") then"
             else:
-                interconnection += "\n\t\t\t\t\telsif (to_integer(unsigned(adr)) <= \""\
-                        +str((slave.getBaseAddress()+slave.getAddressSize()))\
-                        +"\") then"
+                interconnection += "\n\t\t\t\t\t-- Baseaddress: "+hex(slave.getBaseAddress())\
+                        + ", size: "+hex(slave.getAddressSize())
+                interconnection += "\n\t\t\t\t\telsif (to_integer(unsigned(adr)) <= "\
+                        +str((slave.getBaseAddress()+slave.getAddressSize()))+") then"
 
-            interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_dat_i <= datm2s;"
-            interconnection += "\n\t\t\t\t\t\tdats2m <= "+slave.getName()+"_dat_o;"
+            slavenr += 1
+
+            antilatch += "\n\t\t\t\t\t\t"+slave.getName()+"_dat_i <= (others => '0');"
+            antilatch += "\n\t\t\t\t\t\t"+slave.getName()+"_sel_i <= (others => '0');"
+
+            # endianess conversion
+            if slave.getEndianess() == master.getEndianess():
+                interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_dat_i <= datm2s;"
+                interconnection += "\n\t\t\t\t\t\tdats2m <= "+slave.getName()+"_dat_o;"
+                interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_sel_i <= sel;"
+            else:
+                interconnection += "\n\t\t\t\t\t\t-- conversion of endianess"
+                mbw = master.getDataBusWidth()-1
+                sbw = slave.getDataBusWidth()-1
+                selmax = (master.getDataBusWidth() >> 3)
+
+                for i in range(0, (slave.getDataBusWidth() >> 3)):
+                    datm2shi = str(mbw-8*i)
+                    if i != (slave.getDataBusWidth() >> 3): datm2slo = str(mbw-8*(i+1)+1)
+                    else: datm2slo = "0"
+
+                    dats2mhi = str(sbw-8*i)
+                    if i != (slave.getDataBusWidth() >> 3): dats2mlo = str(sbw-8*(i+1)+1)
+                    else: dats2mlo = "0"
+
+                    phi = str(8*(i+1)-1) 
+                    if i != 0: plo = str(8*i)
+                    else: plo = "0"
+
+                    interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_sel_i("\
+                        +str(i)+" downto "+str(i)+") <= sel("+str(selmax-(i+1))+" downto "\
+                        +str(selmax-(i+1))+");"
+                    interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_dat_i("\
+                        +phi+" downto "+plo+") <= datm2s("+datm2shi+" downto "\
+                        +datm2slo+");"
+                    interconnection += "\n\t\t\t\t\t\tdats2m("+datm2shi+" downto "\
+                        +datm2slo+") <= "+slave.getName()+"_dat_o("+phi+" downto "\
+                        +plo+");"
+
+                interconnection += "\n\t\t\t\t\t\t-- end of conversion"
+
             interconnection += "\n\t\t\t\t\t\tack <= "+slave.getName()+"_ack_o;"
-            interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_adr_i <= adr;"
+            interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_adr_i <= adr("\
+                            +str(slave.getHighestAddressBit())+" downto "\
+                            +str(slave.getLowestAddressBit())+");"
             interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_cyc_i <= cyc;"
-            interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_sel_i <= sel;"
             interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_stb_i <= stb;"
             interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_we_i <= we;"
+
+            antilatch += "\n\t\t\t\t\t\t"+slave.getName()+"_adr_i <= (others => '0');"
+            antilatch += "\n\t\t\t\t\t\t"+slave.getName()+"_cyc_i <= '0';"
+            antilatch += "\n\t\t\t\t\t\t"+slave.getName()+"_stb_i <= '0';"
+            antilatch += "\n\t\t\t\t\t\t"+slave.getName()+"_we_i <= '0';"
 
             # set optional slave signals
             if slave.getErrorSignal():
@@ -304,11 +353,13 @@ a wishbone intercon config file '''
                 additional += ";\n\t\t\t"+slave.getName()+"_tga_i : out std_logic_vector("\
                     +str(self.__intercon.getTgaBits()-1)+" downto 0) := (others => '0')"
                 interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_tga_i <= tga;"
+                antilatch += "\n\t\t\t\t\t\t"+slave.getName()+"_tga_i <= (others => '0');"
 
             if slave.getTgcSignal():
                 additional += ";\n\t\t\t"+slave.getName()+"_tgc_i : out std_logic_vector("\
                     +str(self.__intercon.getTgcBits()-1)+" downto 0) := (others => '0')"
                 interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_tgc_i <= tgc;"
+                antilatch += "\n\t\t\t\t\t\t"+slave.getName()+"_tgc_i <= (others => '0');"
 
             if slave.getTgdSignal():
                 additional += ";\n\t\t\t"+slave.getName()+"_tgd_i : out std_logic_vector("\
@@ -316,14 +367,27 @@ a wishbone intercon config file '''
                 additional += ";\n\t\t\t"+slave.getName()+"_tgd_o : in  std_logic_vector("\
                     +str(self.__intercon.getTgdBits()-1)+" downto 0)"
                 interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_tgd_i <= tgdm2s;"
+                antilatch += "\n\t\t\t\t\t\t"+slave.getName()+"_tgd_i <= (others => '0');"
                 interconnection += "\n\t\t\t\t\t\ttgds2m <= "+slave.getName()+"_tgd_o;"
+
+            if (slavenr != slavemax):
+                additional += ";"
 
             slavedefinitions += scontent.replace("%sadditional%", additional)+"\n"
             
 
-        interconnection += "\n\t\t\t\t\telse\n\t\t\t\t\t\tnull;\n\t\t\t\t\tend if;"
+        antilatch += "\n\t\t\t\t\t\tdats2m <= (others => '0');"
+        antilatch += "\n\t\t\t\t\t\tack <= '0';"
+        antilatch += "\n\t\t\t\t\t\terr <= '0';"
+        antilatch += "\n\t\t\t\t\t\trty <= '0';"
+        antilatch += "\n\t\t\t\t\t\ttgds2m <= (others => '0');"
+        interconnection += "\n\t\t\t\t\telse%antilatch%\n\t\t\t\t\tend if;"
+
         content = content.replace("%slaves%", slavedefinitions)
         content = content.replace("%interconnection%", interconnection)
+        content = content.replace("%antilatch%", antilatch)
+        content = content.replace("%antilatch2%", antilatch.replace("\n\t\t\t\t\t\t",\
+                 "\n\t\t\t\t\t").replace("slave selection","cycles"))
 
         # signal definitions
         # required signals

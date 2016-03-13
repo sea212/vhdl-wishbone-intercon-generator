@@ -15,35 +15,7 @@ __license__ = "GPLv3"
 __version__ = "1.0.0"
 __maintainer__ = "Harald Heckmann"
 __email__ = "harald.heckmann@student.hs-rm.de"
-__status__ = "Development (alpha)"
-
-'''
-class Const(object):
-    @constant
-    def LENDIAN():
-        return 0x00000001
-    @constant
-    def BENDIAN():
-        return 0x00000002
-    @constant
-    def READ():
-        return 0x00000003
-    @constant
-    def WRITE():
-        return 0x00000004
-    @constant
-    def RW():
-        return 0x00000005
-    @constant
-    def SINGLE():
-        return 0x00000006
-    @constant
-    def BURST():
-        return 0x00000007
-    @constant
-    def RMW():
-        return 0x00000008
-'''
+__status__ = "Development (beta)"
 
 # constants are a serious problem in python...
 class Const:
@@ -731,12 +703,12 @@ component, but not in a master'''
             @rtype: Integer
             @return: Base address on success, None otherwise
         '''
-        try:
-            if self.__baseaddress == None:
-                raise UnboundLocalError("Base address was not set yet")
-        except UnboundLocalError as e:
-            print("WishboneSlave.getBaseAddress:\n"
-                +"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
+        #try:
+            #if self.__baseaddress == None:
+                #raise UnboundLocalError("Base address was not set yet")
+        #except UnboundLocalError as e:
+            #print("WishboneSlave.getBaseAddress:\n"
+                #+"\tUnboundLocalError occurred: "+e.args[0]+"\nstopping execution")
 
         return self.__baseaddress
 

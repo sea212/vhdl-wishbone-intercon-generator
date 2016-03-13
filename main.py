@@ -24,7 +24,7 @@ __license__ = "GPLv3"
 __version__ = "1.0.0"
 __maintainer__ = "Harald Heckmann"
 __email__ = "harald.heckmann@student.hs-rm.de"
-__status__ = "Development (alpha)"
+__status__ = "Development (beta)"
 
 if __name__ == '__main__':
     start = time()
