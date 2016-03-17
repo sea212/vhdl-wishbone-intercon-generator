@@ -121,7 +121,7 @@
 \end{center}
 
 \begin{abstract}
-Dieses Dokument beschreibt Einleitend Wishbone. Anschließend wird die Projektstruktur und die Funktion der einzelnen Komponenten beschrieben
+Dieses Dokument beschreibt Einleitend Wishbone. Anschließend wird das Projektziel, die Projektstruktur und die Funktion der einzelnen Komponenten beschrieben. Zum Schluss folgt eine Bewertung der Vorgehensweise.
 \end{abstract}
 \newpage
 \tableofcontents
@@ -141,7 +141,7 @@ Die Teilnehmer eines Wishbone Bussystems werden in Master und Slave Kompontenten
 unterteilt. Lediglich ein Master initiiert einen Datenaustausch und 
 gibt dabei vor, ob es ein lesender oder schreibender Zugriff ist und an welcher Adresse
 die Daten abgelegt oder ausgelesen werden. %Wishbone erlaubt Multimaster Systeme (mehrere Master Komponenten).%
-Die Verschaltungseinheit, welche im weiteren Verlauf dieses Dokumentes mit dem Begriff \glqq Intercon\grqq referenziert wird, verschaltet bei einer Anfrage des Masters mit Hilfe der vom Master angegebenen Adresse 
+Die Verschaltungseinheit, welche im weiteren Verlauf dieses Dokumentes mit dem Begriff \glqq Intercon\grqq\ referenziert wird, verschaltet bei einer Anfrage des Masters mit Hilfe der vom Master angegebenen Adresse 
 dessen Leitungen mit den Leitungen des für die Adresse zuständigen Slaves.
 \subsection{Aufgaben des Wishbone Intercon}
 \begin{itemize}
@@ -150,8 +150,8 @@ dessen Leitungen mit den Leitungen des für die Adresse zuständigen Slaves.
 \item Verbindung der Komponenten, sodass
 \begin{itemize}
 \item variable Adress- und Datenbusbreiten berücksichtigt werden
-\item byte- und Wordadressierung berücksichtigt werden
-\item bei unterschiedlicher Endianess eine Konvertierung durchgeführt wird
+\item Byte- und Wordadressierung berücksichtigt werden
+\item bei unterschiedlicher Repräsentation der Daten (endianess) eine Konvertierung durchgeführt wird
 \end{itemize}
 \end{itemize}
 \subsection{Wishbone Beispiele}
@@ -223,7 +223,7 @@ Diese Datei beinhaltet die Klasse WishboneIntercon. In Objekten der Klasse Wishb
 \end{itemize}
 Das WishboneIntercon Objekt ist leicht erweiterbar und kann in anderen Projekten verwendet werden.
 \paragraph{libs/wb\_file\_manager.py}\nl 
-Diese Datei beinhaltet die Klasse WishboneFileManager. Es ist die Klasse, die das einlesen der Konfigurationsdatei übernimmt, diese Informationen in WishboneMaster, WishboneSlave und WishboneIntercon Objekte einspeißt, und letztendlich mit dem erzeugten WishboneIntercon Objekt, welches wie bereits erwähnt ein WishboneMaster und beliebig viele WishboneSlave Objekte enthält (also alles was man braucht), einen Wishbone VHDL Intercon generieren kann. Abgesehen davon bietet Sie auch eine Funktion, um die Informationen aus den erstellen Objekten sauber auf einer Konsole auszugeben.
+Diese Datei beinhaltet die Klasse WishboneFileManager. Es ist die Klasse, die das einlesen der Konfigurationsdatei übernimmt, diese Informationen in WishboneMaster, WishboneSlave und WishboneIntercon Objekte einspeißt und letztendlich mit dem erzeugten WishboneIntercon Objekt, welches wie bereits erwähnt ein WishboneMaster und beliebig viele WishboneSlave Objekte enthält, einen Wishbone VHDL Intercon generieren kann. Abgesehen davon bietet Sie auch eine Funktion, um die Informationen aus den erstellen Objekten sauber auf einer Konsole auszugeben.
 \paragraph{libs/main.py} \nl
 Diese Datei beinhaltet die Hauptroutine, welche alle Funktionen in der richtigen Reihenfolge aufruft und zudem eine Berechnungsdauer und den Ausgangstatus auf einer Konsole ausgibt. Es ist zwingend erforderlich, das Programm mit Python 3.0 oder neuer auszuführen.\\
 Befehl in der Konsole: python3 main.py
@@ -368,14 +368,27 @@ konfigurieren.
 Der Generator verwendet ein WishboneIntercon Objekt (aus wb\_intercon.py), dass wie bereits bekannt alle notwendigen Informationen aus der Konfigurationsdatei enthält. Anschließend wird eine Templatedatei geöffnet, die strukturell den gesamten VHDL-Code und Platzhalter enthält. Einige Platzhalter werden immer durch Text ersetzt, da diese Zeilen im Template bei jeder Konfiguration im generierten VHDL Code enthalten sein werden. Nicht der gesamte VHDL Code kann so generiert werden, da es VHDL Code gibt der nur bei bestimmten Konfigurationen erzeugt wird (Beispielsweise 0-6 zusätzliche Signale) oder sich bei unterschiedlichen Konfigurationen unterscheidet (Beispielsweise Verschaltung der Datenleitung mit gleicher und unterschiedlicher Endianess). Der Code, der von der Struktur her nicht immer gleich bleibt, wird in Python erstellt und nachträglich hinzugefügt.
 \subsubsection{VHDL Templates}
 \paragraph{template\_intercon.tmpl}\nl
-Diese Templatedatei enthält die gesamte VHDL Codestruktur mit Platzhaltern. In ihr sind die Portdefinitionen des Masters, ein Platzhalter für alle Portdefinitionen der Slaves, die Signalerstellung- und Zuweisung für feste als auch optionale Signale und der strukturelle Programmfluss mit Platzhaltern enthalten. Die Platzhalter für optionale Funktionalität werden im Pythoncode ersetzt, da der Aufbau erst zur Laufzeit des Programs (nach einlesen der Konfigurationsdatei) bekannt ist. Der Platzhalter \glqq \%slaves\%\grqq in der Portdefinition wird durch die Portdefinition aller Slaves ersetzt. Da erst zur Laufzeit bekannt ist, wieviele Slaves es geben wird, kann die Portdefinition für die Slaves erst zur Laufzeit des Programms erstellt werden. Für jeden Slave wird eine Kopie des Inhalts aus der Datei \glqq template\_slave.tmpl\grqq modifiziert und anschließend der Portdefinition beigefügt.
+Diese Templatedatei enthält die gesamte VHDL Codestruktur mit Platzhaltern. In ihr sind die Portdefinitionen des Masters, ein Platzhalter für alle Portdefinitionen der Slaves, die Signalerstellung- und Zuweisung für feste als auch optionale Signale und der strukturelle Programmfluss mit Platzhaltern enthalten. Die Platzhalter für optionale Funktionalität werden im Pythoncode ersetzt, da der Aufbau erst zur Laufzeit des Programs (nach einlesen der Konfigurationsdatei) bekannt ist. Der Platzhalter \glqq \%slaves\%\grqq\ in der Portdefinition wird durch die Portdefinition aller Slaves ersetzt. Da erst zur Laufzeit bekannt ist, wieviele Slaves es geben wird, kann die Portdefinition für die Slaves erst zur Laufzeit des Programms erstellt werden. Für jeden Slave wird eine Kopie des Inhalts aus der Datei \glqq template\_slave.tmpl\grqq\ modifiziert und anschließend der Portdefinition beigefügt.
 \paragraph{template\_slave.tmpl}\nl
 Diese Templatedatei ist entstanden, da es eine beliebige Anzahl an Slaves geben kann und die Portdefinition beliebig oft benötigt wird. Sie enthält lediglich die Portdefinition der Leitungen die zwingend vorhanden sein müssen und einen Platzhalter für die optionalen Leitungen.
 \subsection{Programmfluss}
-Alle Module mit Assoiziationspfeilen zeichen, module im nächsten kapitel erklären (AKTIVITÄTSDIAGRAMM?)\\
-Dateipfade angeben
-
-WICHTIG: Programm main.py muss mit python3 ausgeführt werden (NICHT python)
+\begin{enumerate}
+\item main.py wird ausgeführt
+\item main ruft WishboneFileManager.parse() auf
+\item WishboneFileManager ruft ConfigParser.read("wishbone.ini") auf
+\item WishboneFileManager erhält ein dict() (dictionary) Objekt mit der ausgelesenen Konfiguration
+\item WishboneFileManager erstellt ein WishboneMaster Objekt, welches die Informationen bezüglich des Masters aus der Konfigurationsdatei enthält (Sektion: [MASTER])
+\item WishboneFileManager erstellt für jeden Slave in der Konfigurationsdatei (Sektion: [SLAVE\_n]) WishboneSlave Objekte
+\item WishboneFileManager erstellt ein WishboneIntercon Objekt, 
+\begin{itemize}
+\item welches die Informationen bezüglich des Intercon enthält (Sektion: [GENERAL])
+\item welches das soeben erstellte WishboneMaster Objekt enthält
+\item welches die soeben erstellten WishboneSlave Objekte enthält
+\end{itemize}
+\item main ruft WishboneFileManager.printConfigContent() auf, welche die Konfiguration geordnet auf der Konsole ausgibt
+\item main ruft WishboneFileManager.generateIntercon(), die Arbeitsweise dessen wurde bereits beschrieben
+\item main gibt Abschließend die Ausführungsdauer sowie den Ausführungstatus aus
+\end{enumerate}
 \subsection{Fehlende Features}
 \subsubsection{Im Generator nicht Berücksichtigt}
 Einige Konfigurationsmöglichkeiten werden mit in die Objekte (WishboneMaster, WishboneSlave, WishboneIntercon) übernommen, allerdings nicht vom Generator berücksichtigt. Dazu zählen:\\\\
@@ -408,9 +421,6 @@ Ein weitere Schwierigkeit ist es, mit einem Programm, das VHDL Quelltext generie
 \paragraph{War die Vorgehensweise rückblickend gut?}\nl
 Die Vorgehensweise, in Python einen Parser und Generator (in dieser Reihenfolge) zu schreiben, ist weder eine besonders hervorragende, noch eine besonders schlechte Idee. Der Zusatzaufwand, der erforderlich ist um einen Parser und einen Generator zu schreiben, ist nicht außer acht zu lassen. Für diese Zwecke ist Python jedoch geeignet. Der Parser und der Generator machen den kleineren Teil aus, der größte Teil ist die Erstellung und Validierung der Objekte, bevor diese von der Generatorprozedur verwendet werden. Wäre das Projekt größer und der zu generierende Code von weiteren Bedingungen abhängig (= größeres Regelwerk für den Generator), so wird der Generator in Python unüberschaubar und nicht wartbar. Für einen Generator wie in diesem Pythonprojekt, der nur ein sehr kleines Regelwerk benötigt, wird es schon langsam unüberschaubar. Ohne Wissen über Compilerbau ist diese Vorgehensweise jedoch ein gutes Training, einen Teil der Probleme, die Generatoren zu behandeln haben, genauer kennen zu lernen.
 Eine Alternative ist, bereits bestehende Code Generatoren zu verwenden, was einen wesentlichen Anteil and Programmcode spart und das Projekt leichter wartbar macht. Um einen solchen Generator genannt zu haben, \glqq GSL Universal Code Generator \grqq bietet die Möglichkeit \glqq Für alle Sprachen und alle Zwecke \grqq (Zitat aus der Dokumentation des Generators) Code zu generieren.
-\paragraph{was lief gut?}\nl
-\paragraph{was lief schlecht?}\nl
-\paragraph{Bekannte Bugs}\nl
 \nl\nl
 Abschließend muss erwähnt werden, dass das Wissen das bei der Erstellung eines solchen Projektes über Parser, Generatoren, VHDL und vor allen Dingen Bussystemen, von großem Wert ist. Für das weitere Hardwarenahe Arbeiten ist das Wissen über Bussysteme von großer Bedeutung und beinahe unvermeidbar. Für das weitere Arbeiten mit FPGAs ist das Wissen über die Umsetzung von VHDL-Strukturen in Hardware von großer Wichtigkeit. Und Falls jemals wieder Code generiert werden muss, so ist nun klar, das nächstes mal ein Generatortool dafür verwendet wird oder ein spezielles Generatortool, erst nach Aneignung einigen Wissens über Compilerbau, entwickelt wird.
 \end{document}
