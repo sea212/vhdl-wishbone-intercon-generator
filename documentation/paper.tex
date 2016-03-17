@@ -22,6 +22,7 @@
 \graphicspath{ {./footage/} }
 \renewcommand{\figurename}{Abbildung}
 \usepackage{color}
+\usepackage[usenames,dvipsnames]{xcolor}
 \usepackage{tabularx}
 
 \usepackage{capt-of}
@@ -30,7 +31,7 @@
 
 \usepackage{subcaption}
 \usepackage{fancybox}
-\renewcommand{\newline}{\leavevmode\newline}
+\newcommand{\nl}{\leavevmode\newline}
 %------------------------------------------------------------------------------
 % Lettrines
 %------------------------------------------------------------------------------
@@ -48,6 +49,22 @@
 %------------------------------------------------------------------------------
 \usepackage{titlesec}
 
+%------------------------------------------------------------------------------
+% listings
+%------------------------------------------------------------------------------
+\usepackage{listings}
+\lstdefinelanguage{Ini}
+{
+    basicstyle=\ttfamily\small,
+    columns=fullflexible,
+    morecomment=[s][\color{Orchid}\bfseries]{[}{]},
+    morecomment=[l]{\#},
+    morecomment=[l]{;},
+    commentstyle=\color{gray}\ttfamily,
+    morekeywords={},
+    otherkeywords={=,:},
+    keywordstyle={\color{green}\bfseries}
+}
 %------------------------------------------------------------------------------
 % Header/footer
 %------------------------------------------------------------------------------
@@ -187,27 +204,138 @@ Folgende Ordnerstruktur findet sich im Projektverzeichnis wieder:
 \end{itemize}
 \end{itemize}
 \subsection{Aufgaben der einzelnen Module}
-\paragraph{libs/wb\_component.py}\newline
-enthält Wishbone Component klasse mit:
-- wishbone componenten als superklasse
--> generelle informationen die sich master als auch slave teilen
--> unterklasse wishbone master mit masterspezifischen infos
--> unterklasse wishbone slave mit slavespezifischen infos
-\paragraph{libs/wb\_intercon.py} 
-enthält intercon klasse mit:
-- generellen intercon infos
-- einem master objekt (aus wb\_component->master)
-- beliebig vielen slave objekten (aus wb\_component->slave)
-\paragraph{libs/wb\_file\_manager.py} 
-- parsen der config
-- ausgabe der aus der konfiguration gelesenen und in intercon objekt eingetragenen werte
-- generierung des intercon in VHDL
-\paragraph{libs/main.py} 
-- ausführen der funktionen in richtiger reinfolge
-- exitstatus
-- berechnungsdauer
+\paragraph{libs/wb\_component.py}\nl
+Diese Datei beinhaltet folgende Klassen:
+\begin{itemize}
+\item WishboneComponent
+\item WishboneComponent:WishboneMaster
+\item WishboneComponent:WishboneSlave
+\end{itemize}
+Die Klassen dienen dazu Informationen über Wishbone Master und Slaves in Objekten zu abstrahieren.
+Generelle Informationen, die Master als auch Slaves benötigen, werden in Objekten der Klasse WishboneComponent abgespeichert. Alle Informationen, die Master Komponenten benötigen, werden zudem in Objekten der Klasse WishboneMaster gespeichert, welche von WishboneComponent erbt. Das gleiche gilt für Slave Komponenten, deren Informationen in Objekten der Klasse WishboneSlave abgespeichert werden. Diese Objekte sind leicht erweiterbar und können in anderen Projekten verwendet werden.
+\paragraph{libs/wb\_intercon.py}\nl
+Diese Datei beinhaltet die Klasse WishboneIntercon. In Objekten der Klasse WishboneIntercon sind folgende Informationen hinterlegt:
+\begin{itemize}
+\item Generelle Informationen über den Wishbone Intercon
+\item Ein WishboneMaster Objekt
+\item Beliebig viele (unterschiedliche) WishboneSlave Objekte
+\end{itemize}
+Das WishboneIntercon Objekt ist leicht erweiterbar und kann in anderen Projekten verwendet werden.
+\paragraph{libs/wb\_file\_manager.py}\nl 
+Diese Datei beinhaltet die Klasse WishboneFileManager. Es ist die Klasse, die das einlesen der Konfigurationsdatei übernimmt, diese Informationen in WishboneMaster, WishboneSlave und WishboneIntercon Objekte einspeißt, und letztendlich mit dem erzeugten WishboneIntercon Objekt, welches wie bereits erwähnt ein WishboneMaster und beliebig viele WishboneSlave Objekte enthält (also alles was man braucht), einen Wishbone VHDL Intercon generieren kann. Abgesehen davon bietet Sie auch eine Funktion, um die Informationen aus den erstellen Objekten sauber auf einer Konsole auszugeben.
+\paragraph{libs/main.py} \nl
+Diese Datei beinhaltet die Hauptroutine, welche alle Funktionen in der richtigen Reihenfolge aufruft und zudem eine Berechnungsdauer und den Ausgangstatus auf einer Konsole ausgibt. Es ist zwingend erforderlich, das Programm mit Python 3.0 oder neuer auszuführen.\\
+Befehl in der Konsole: python3 main.py
 \subsection{Aufbau der Konfigurationsdatei}
-Erkläre sections, keys wurden bereits erklärt
+Die Konfigurationsdatei kann in drei Bereiche aufgeteilt werden:
+\begin{enumerate}
+\item General - enthält generelle Informationen über den Wishbone Intercon
+\item Master - enthält Informationen über den Wishbone Master
+\item Slave(n) - enthält Informationen über den Wishbone Slave mit der nummer \glqq n\grqq
+\end{enumerate}
+\begin{lstlisting}[language={Ini},frame=single]
+# --------------------- General configuration ---------------------
+# List of keywords for general configuration
+# tga_bits          = decimal value
+# tgc_bits          = decimal value
+# tgd_bits          = decimal value
+# data_bus_width     = decimal value (size of databus in intercon, bits)
+# address_bus_with  = decimal value (size of addressbus in intercon, bits)
+
+[GENERAL]
+name = the_intercon
+# use 0 bits if you do not need these signals
+tga_bits = 3
+tgc_bits = 3
+tgd_bits = 3
+data_bus_width = 32
+address_bus_width = 32
+\end{lstlisting}
+\begin{lstlisting}[language={Ini},frame=single]
+# --------------------- (single) Master component ---------------------
+
+
+# List of keywords for master modules and possible values:
+# name              = string (will be used as signal prefix)
+# data_bus_width     = decimal value
+# address_bus_width = decimal value
+# endianess         = big/little
+# data_flow         = r/w/rw
+# err               = true/false
+# rty               = true/false
+# tga               = true/false
+# tgc               = true/false
+# tgd               = true/false
+
+[MASTER]
+# name
+name = btn_ctrl
+# bus sizes and byte ordering
+data_bus_width = 32
+address_bus_width = 32
+endianess = big
+
+# write / read access
+data_flow = w
+
+# additional signals
+err = true
+rty = true
+tga = true
+tgc = true
+tgd = true
+\end{lstlisting}
+
+\begin{lstlisting}[language={Ini},frame=single]
+# --------------------- Slave components ---------------------
+
+
+# List of keywords for slave modules and possible values:
+# base_address              = hexadecimal value
+# address_size              = hexadecimal value
+# addressing_granularity    = byte/word
+# word_size                 = decimal value
+# address_bus_high          = decimal value
+# address_bus_low           = decimal value (lowest bit = 0)
+# name                      = string (will be used as signal prefix)
+# data_bus_width            = decimal value
+# endianess                 = big/little
+# data_flow                 = r/w/rw
+# err                       = true/false
+# rty                       = true/false
+# tga                       = true/false
+# tgc                       = true/false
+# tgd                       = true/false
+
+# name slaves section SLAVEn, where n E N+
+[SLAVE1]
+# name
+name = led_ctrl
+# bus sizes and byte ordering
+data_bus_width = 32
+endianess = little
+# partial address decoding
+address_bus_high = 31
+address_bus_low = 0
+
+# base address and address size
+base_address = 0x00000000
+address_size = 0x00100000
+
+# address bus granularity and word size
+addressing_granularity = byte
+word_size = 32
+
+# write / read access
+data_flow = r
+
+# additional signals
+err = true
+rty = true
+tga = false
+tgc = false
+tgd = false
+\end{lstlisting}
 \subsection{Arbeitsweise des Generators}
 Der Generator verwendet ein WishboneIntercon Objekt (aus wb\_intercon.py), dass wie bereits bekannt alle notwendigen Informationen aus der Konfigurationsdatei enthält. Anschließend wird eine Templatedatei geöffnet, die den gesamten VHDL-Code und Platzhalter enthält. Einige Platzhalter werden immer durch Text ersetzt, da diese Zeilen im Template bei jeder Konfiguration im generierten VHDL Code enthalten sein werden. Nicht der gesamte VHDL Code kann so generiert werden, da es VHDL Code gibt der nur bei bestimmten Konfigurationen erzeugt wird (Beispielsweise 0-6 zusätzliche Signale) oder sich bei unterschiedlichen Konfigurationen unterscheidet (Beispielsweise Verschaltung der Datenleitung mit gleicher und unterschiedlicher Endianess). Der Code, der von der Struktur her nicht immer gleich bleibt, wird in Python (im Textsegment) erstellt und ersetzt anschließend die restlichen Platzhalter.
 \subsubsection{VHDL Templates}
@@ -237,7 +365,7 @@ addressing\_granularity = word und word\_size = 32, dann können Adressen in log
 \end{itemize}
 Für Master und Slaves:
 \begin{itemize}
-\item data flow\\
+\item data\_flow\\
 Gibt an, ob eine Komponente auf den Datenbus nur lesen, nur schreiben oder lesen und schreiben darf
 \end{itemize}
 \subsubsection{Nachträglich entfernt}

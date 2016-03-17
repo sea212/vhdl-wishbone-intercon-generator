@@ -1,0 +1,28 @@
+\select@language {ngerman}
+\contentsline {section}{\numberline {1}Einleitung}{4}{section.1}
+\contentsline {subsection}{\numberline {1.1}Wishbone}{4}{subsection.1.1}
+\contentsline {subsection}{\numberline {1.2}Aufgaben des Wishbone Intercon}{4}{subsection.1.2}
+\contentsline {subsection}{\numberline {1.3}Wishbone Beispiele}{4}{subsection.1.3}
+\contentsline {section}{\numberline {2}Das Projekt}{4}{section.2}
+\contentsline {subsection}{\numberline {2.1}Projektaufbau}{5}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Aufgaben der einzelnen Module}{5}{subsection.2.2}
+\contentsline {paragraph}{libs/wb\_component.py}{5}{paragraph*.1}
+\contentsline {paragraph}{libs/wb\_intercon.py}{6}{paragraph*.2}
+\contentsline {paragraph}{libs/wb\_file\_manager.py}{6}{paragraph*.3}
+\contentsline {paragraph}{libs/main.py}{6}{paragraph*.4}
+\contentsline {subsection}{\numberline {2.3}Aufbau der Konfigurationsdatei}{6}{subsection.2.3}
+\contentsline {subsection}{\numberline {2.4}Arbeitsweise des Generators}{8}{subsection.2.4}
+\contentsline {subsubsection}{\numberline {2.4.1}VHDL Templates}{8}{subsubsection.2.4.1}
+\contentsline {paragraph}{template\_intercon.tmpl}{8}{paragraph*.5}
+\contentsline {paragraph}{template\_slave.tmpl}{8}{paragraph*.6}
+\contentsline {subsection}{\numberline {2.5}Programmfluss}{9}{subsection.2.5}
+\contentsline {subsection}{\numberline {2.6}Features}{9}{subsection.2.6}
+\contentsline {subsubsection}{\numberline {2.6.1}Implementiert}{9}{subsubsection.2.6.1}
+\contentsline {subsubsection}{\numberline {2.6.2}Im Generator nicht Ber\IeC {\"u}cksichtigt}{9}{subsubsection.2.6.2}
+\contentsline {subsubsection}{\numberline {2.6.3}Nachtr\IeC {\"a}glich entfernt}{9}{subsubsection.2.6.3}
+\contentsline {subsection}{\numberline {2.7}Probleme / Schwierigkeiten}{9}{subsection.2.7}
+\contentsline {section}{\numberline {3}Schlusswort}{10}{section.3}
+\contentsline {paragraph}{War die Vorgehensweise r\IeC {\"u}ckblickend gut?}{10}{paragraph*.7}
+\contentsline {paragraph}{was lief gut?}{10}{paragraph*.8}
+\contentsline {paragraph}{was lief schlecht?}{10}{paragraph*.9}
+\contentsline {paragraph}{Bekannte Bugs}{10}{paragraph*.10}
