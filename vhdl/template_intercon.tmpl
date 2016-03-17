@@ -64,7 +64,7 @@ begin
     %mname%_ack_i <= ack;%additional_assignments%
 
     -- interconnect
-    interconnect : process (clk_i, rst_i, %mname%_cyc_o)
+    interconnect : process (clk_i, rst_i, adr, %mname%_cyc_o)
     begin
         if (rising_edge(clk_i)) then
             if (rst_i = '1') then

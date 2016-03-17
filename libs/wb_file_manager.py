@@ -344,10 +344,12 @@ a wishbone intercon config file '''
             if slave.getErrorSignal():
                 additional += ";\n\t\t\t"+slave.getName()+"_err_o : in  std_logic"
                 interconnection += "\n\t\t\t\t\t\terr <= "+slave.getName()+"_err_o;"
+                antilatch += "\n\t\t\t\t\t\terr <= '0';"
 
             if slave.getRetrySignal():
                 additional += ";\n\t\t\t"+slave.getName()+"_rty_o : in  std_logic"
                 interconnection += "\n\t\t\t\t\t\trty <= "+slave.getName()+"_rty_o;"
+                antilatch += "\n\t\t\t\t\t\trty <= '0';"
 
             if slave.getTgaSignal():
                 additional += ";\n\t\t\t"+slave.getName()+"_tga_i : out std_logic_vector("\
@@ -368,6 +370,7 @@ a wishbone intercon config file '''
                     +str(self.__intercon.getTgdBits()-1)+" downto 0)"
                 interconnection += "\n\t\t\t\t\t\t"+slave.getName()+"_tgd_i <= tgdm2s;"
                 antilatch += "\n\t\t\t\t\t\t"+slave.getName()+"_tgd_i <= (others => '0');"
+                antilatch += "\n\t\t\t\t\t\ttgds2m <= (others => '0');"
                 interconnection += "\n\t\t\t\t\t\ttgds2m <= "+slave.getName()+"_tgd_o;"
 
             if (slavenr != slavemax):
@@ -378,9 +381,6 @@ a wishbone intercon config file '''
 
         antilatch += "\n\t\t\t\t\t\tdats2m <= (others => '0');"
         antilatch += "\n\t\t\t\t\t\tack <= '0';"
-        antilatch += "\n\t\t\t\t\t\terr <= '0';"
-        antilatch += "\n\t\t\t\t\t\trty <= '0';"
-        antilatch += "\n\t\t\t\t\t\ttgds2m <= (others => '0');"
         interconnection += "\n\t\t\t\t\telse%antilatch%\n\t\t\t\t\tend if;"
 
         content = content.replace("%slaves%", slavedefinitions)

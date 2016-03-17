@@ -3,7 +3,8 @@
 % -----------------------------------------------------------------------------
 % Fonts and typesetting settings
 %------------------------------------------------------------------------------
-\usepackage{avant}
+%\usepackage{avant}
+\usepackage{bookman}
 \usepackage[T1]{fontenc}
 \linespread{1.05} % Palatino needs more space between lines
 %\usepackage{microtype}
@@ -28,6 +29,7 @@
 \usepackage[ngerman]{babel}
 
 \usepackage{subcaption}
+\usepackage{fancybox}
 %------------------------------------------------------------------------------
 % Lettrines
 %------------------------------------------------------------------------------
@@ -120,28 +122,44 @@ in der Lage sind bei geeigneter Verschaltung miteinander zu kommunizieren.
 Die Teilnehmer eines Wishbone Bussystems werden in Master und Slave Kompontenten
 unterteilt. Lediglich ein Master initiiert einen Datenaustausch und 
 gibt dabei vor, ob es ein lesender oder schreibender Zugriff ist und an welcher Adresse
-die Daten abgelegt oder ausgelesen werden. Wishbone erlaubt Multimaster Systeme (mehrere Master Komponenten).
+die Daten abgelegt oder ausgelesen werden. %Wishbone erlaubt Multimaster Systeme (mehrere Master Komponenten).%
 Die Verschaltungseinheit, welche im weiteren Verlauf dieses Dokumentes mit dem Begriff \glqq Intercon\grqq referenziert wird, verschaltet bei einer Anfrage des Masters mit Hilfe der vom Master angegebenen Adresse 
 dessen Leitungen mit den Leitungen des für die Adresse zuständigen Slaves.
 \subsection{Aufgaben des Wishbone Intercon}
 \begin{itemize}
 \item Adressdekodierer - den für die angegebene Adresse zuständigen Slave wählen
-\item (Nur bei Multimaster Systemen) Ein Arbiter, der vom Benutzer definiert wird
+\item (Nur bei Systemen mit mehreren Mastern) Ein Arbiter, der vom Benutzer definiert wird
 \item Verbindung der Komponenten, sodass
 \begin{itemize}
 \item variable Adress- und Datenbusbreiten berücksichtigt werden
-\item Byte- und Wordadressierung berücksichtigen
-\item bei unterschiedlicher Endianess einer Konvertierung durchgeführt wird
+\item byte- und Wordadressierung berücksichtigt werden
+\item bei unterschiedlicher Endianess eine Konvertierung durchgeführt wird
 \end{itemize}
 \end{itemize}
 \subsection{Wishbone Beispiele}
-Beispiel 1, Übungsszenario
+
+\noindent
+\shadowbox{%
+\begin{minipage}{\dimexpr\textwidth-\shadowsize-2\fboxrule-2\fboxsep}
+   \textcolor{red}{\sffamily Beispiel 1, Übungsszenario}\par\vspace{\baselineskip}
 	[Master] Button-Controller \newline [Slave1] LED-Controller \newline [Slave2] RGB-LED-Controller
-Beispiel 2, Reales Szenario
+\end{minipage}}
+\\\\
+\noindent
+\shadowbox{%
+\begin{minipage}{\dimexpr\textwidth-\shadowsize-2\fboxrule-2\fboxsep}
+   \textcolor{red}{\sffamily Beispiel 2, Reales Szenario}\par\vspace{\baselineskip}
 	[Master] MCU \newline [Slave1] VGA-Controller \newline [Slave2] SRAM-Controller
+\end{minipage}}
+
 \section{Das Projekt}
-Projektziele
+Ziel des Projektes ist es, einen VHDL Code Generator zu erstellen,
+der Informationen aus einer Konfigurationsdatei ausliest und aus
+diesen Informationen einen geeigneten Intercon in VHDL (Hardwarebeschreibungssprache) generiert.
+Der Intercon soll in der Lage sein, einen Master und beliebig viele Slaves mit einer \glqq Point-to-Point \grqq
+(1 Master, 1 Slave) oder einem \glqq Shared Bus \grqq (1 Master, n Slaves) zu verschalten.
 \subsection{Projektaufbau}
+
 Alle Module mit Assoiziationspfeilen zeichen, module im nächsten kapitel erklären (AKTIVITÄTSDIAGRAMM?)\\
 Dateipfade angeben
 \subsection{Aufgaben der einzelnen Module}
@@ -173,10 +191,15 @@ Der Generator verwendet ein WishboneIntercon Objekt (aus wb\_intercon.py), dass 
 wofür ist das gut?
 \paragraph{template\_slave.tmpl}
 wofür ist das gut?
+Alle Module mit Assoizi
+\subsection{Programmfluss}
+ationspfeilen zeichen, module im nächsten kapitel erklären (AKTIVITÄTSDIAGRAMM?)\\
+Dateipfade angeben
 \subsection{Features}
+Im folgenden werden die Funktionen des Intercon Generators dargelegt.
 \subsubsection{Implementiert}
 \subsubsection{Im Generator nicht Berücksichtigt}
-Einige Konfigurationsmöglichkeiten werden mit in die Objekte übernommen, allerdings nicht vom Generator berücksichtigt. Dazu zählen:\\
+Einige Konfigurationsmöglichkeiten werden mit in die Objekte (WishboneMaster, WishboneSlave, WishboneIntercon) übernommen, allerdings nicht vom Generator berücksichtigt. Dazu zählen:\\
 Für Slaves:
 \begin{itemize}
 \item addressing\_granularity und word\_size\\
@@ -198,6 +221,8 @@ Gibt an, ob eine Komponente auf den Datenbus nur lesen, nur schreiben oder lesen
 kann die Werte single, burst und rmw (read, modify, write) annehmen. Dieser Wert wurde auf Grund eines Missverständnisses zu Begin des Projektes anschließend im Verlauf des Projektes wieder entfernt, da das Verhalten des Intercon sich nicht dadurch beinflusst, ob die Daten einzelnt, mit bursts oder mittels rmw übertragen werden
 \end{itemize}
 \subsection{Probleme / Schwierigkeiten}
+Ohne jemals etwas von Bussystemen gehört zu haben, ist es sehr Schwierig zu verstehen was in einem Wishbone Bussystem genau geschieht. Das offizielle Wishbone Referenzdokument \glqq Wishbone B4 \grqq war im laufe des Projektes die Hauptreferenzquelle. An der Stelle ist es wichtig zu erwähnen das der Autor des Dokuments hervorragende Arbeit geleistet hat. Schon Bald wurde klar, was in einem Wishbone Bussystem geschieht und wie die Komponenten miteinander kommunizieren, allerdings war eine lang anhaltende Schwierigkeit zu differenzen, welche Aufgaben in den Wishbone Modulen und welche Aufgaben in dem Wishbone Intercon durchgeführt werden. Hierbei hat sehr geholfen, sich bestehende Intercons anzuschauen und bereits bestehende Intercon Generatoren zu analyisieren.
+Zu Begin des Projektes waren die Aufgaben eines Wishbone Modules und die Aufgaben eines Wishbone Intercon nur schwer zu differenzieren. Das offizielle Wishbone Referenzdokument \glqq Wishbone B4 \grqq war im laufe des Projektes die Hauptreferenzquelle.
 beschreibe hier das kombinatorischer schaltkreis / latch problem
 \section{Schlusswort}
 War die vorgehensweise eine gute idee?
