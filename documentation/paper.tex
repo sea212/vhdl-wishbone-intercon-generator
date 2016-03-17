@@ -1,0 +1,208 @@
+\documentclass{article}
+
+% -----------------------------------------------------------------------------
+% Fonts and typesetting settings
+%------------------------------------------------------------------------------
+\usepackage{avant}
+\usepackage[T1]{fontenc}
+\linespread{1.05} % Palatino needs more space between lines
+%\usepackage{microtype}
+\usepackage{amsmath}
+\renewcommand{\familydefault}{\sfdefault}
+
+%------------------------------------------------------------------------------
+% Page layout
+%------------------------------------------------------------------------------
+\usepackage[hmarginratio=1:1,top=30mm,bottom=30mm,columnsep=20pt]{geometry}
+\usepackage[font=it]{caption}
+\usepackage{paralist}
+
+\usepackage{graphicx}
+\graphicspath{ {./footage/} }
+\renewcommand{\figurename}{Abbildung}
+\usepackage{color}
+\usepackage{tabularx}
+
+\usepackage{capt-of}
+
+\usepackage[ngerman]{babel}
+
+\usepackage{subcaption}
+%------------------------------------------------------------------------------
+% Lettrines
+%------------------------------------------------------------------------------
+\usepackage{lettrine}
+
+%------------------------------------------------------------------------------
+% Abstract
+%------------------------------------------------------------------------------
+\usepackage{abstract}
+	\renewcommand{\abstractnamefont}{\normalfont\bfseries}
+	\renewcommand{\abstracttextfont}{\normalfont\small\itshape}
+
+%------------------------------------------------------------------------------
+% Titling (section/subsection)
+%------------------------------------------------------------------------------
+\usepackage{titlesec}
+
+%------------------------------------------------------------------------------
+% Header/footer
+%------------------------------------------------------------------------------
+\usepackage{fancyhdr}
+	\pagestyle{fancy}
+	\fancyhead{}
+	\fancyfoot{}
+	\fancyhead[C]{Hard- und Softwareschnittstellen $\bullet$ Wintersemester 15/16 $\bullet$ Prof. Dr. Steffen Reith}
+	\fancyfoot[RO]{\thepage}
+
+%------------------------------------------------------------------------------
+% Maketitle metadata
+%------------------------------------------------------------------------------
+\title{\vspace{-3mm}%
+	\fontsize{24pt}{10pt}\selectfont
+	\textbf{VHDL Wishbone Intercon Generator} \\
+	\textbf{Geschrieben in Python, generiert VHDL}
+	}
+
+\author{%
+	\large
+	\textsc{Harald Heckmann} \\[2mm]
+	\normalsize	Studiengang Angewandte Informatik, Hochschule RheinMain \\
+	\normalsize	Wintersemester 2015/2016 \\
+	\normalsize	Projekt bei Prof. Dr. Steffen Reith \\
+	\vspace{-5mm}
+	}
+\date{}
+
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{url}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%------------------------------------------------------------------------------
+% Titelseite
+%------------------------------------------------------------------------------
+
+\maketitle
+\newpage
+
+%------------------------------------------------------------------------------
+% Abstract und Inhaltsverzeichnis
+%------------------------------------------------------------------------------
+
+
+
+\begin{center}
+\textbf{VHDL Wishbone Intercon Generator} \\
+\textbf{Geschrieben in Python, generiert VHDL}
+\end{center}
+
+\begin{abstract}
+Kurzfassung
+\end{abstract}
+\newpage
+\tableofcontents
+\newpage
+
+%------------------------------------------------------------------------------
+% Inhaltsseiten / Sections
+%------------------------------------------------------------------------------
+
+\section{Einleitung}
+\subsection{Wishbone}
+Wishbone ist ein Opensource Bussystem für System-on-Chip (SoC) Systeme.
+Wishbone gibt ein Regelwerk vor, das bei der Entwicklung von IP-Cores
+berücksichtigt werden kann, sodass alle Module, die diese Regeln berücksichtigen,
+in der Lage sind bei geeigneter Verschaltung miteinander zu kommunizieren.
+Die Teilnehmer eines Wishbone Bussystems werden in Master und Slave Kompontenten
+unterteilt. Lediglich ein Master initiiert einen Datenaustausch und 
+gibt dabei vor, ob es ein lesender oder schreibender Zugriff ist und an welcher Adresse
+die Daten abgelegt oder ausgelesen werden. Wishbone erlaubt Multimaster Systeme (mehrere Master Komponenten).
+Die Verschaltungseinheit, welche im weiteren Verlauf dieses Dokumentes mit dem Begriff \glqq Intercon\grqq referenziert wird, verschaltet bei einer Anfrage des Masters mit Hilfe der vom Master angegebenen Adresse 
+dessen Leitungen mit den Leitungen des für die Adresse zuständigen Slaves.
+\subsection{Aufgaben des Wishbone Intercon}
+\begin{itemize}
+\item Adressdekodierer - den für die angegebene Adresse zuständigen Slave wählen
+\item (Nur bei Multimaster Systemen) Ein Arbiter, der vom Benutzer definiert wird
+\item Verbindung der Komponenten, sodass
+\begin{itemize}
+\item variable Adress- und Datenbusbreiten berücksichtigt werden
+\item Byte- und Wordadressierung berücksichtigen
+\item bei unterschiedlicher Endianess einer Konvertierung durchgeführt wird
+\end{itemize}
+\end{itemize}
+\subsection{Wishbone Beispiele}
+Beispiel 1, Übungsszenario
+	[Master] Button-Controller \newline [Slave1] LED-Controller \newline [Slave2] RGB-LED-Controller
+Beispiel 2, Reales Szenario
+	[Master] MCU \newline [Slave1] VGA-Controller \newline [Slave2] SRAM-Controller
+\section{Das Projekt}
+Projektziele
+\subsection{Projektaufbau}
+Alle Module mit Assoiziationspfeilen zeichen, module im nächsten kapitel erklären (AKTIVITÄTSDIAGRAMM?)\\
+Dateipfade angeben
+\subsection{Aufgaben der einzelnen Module}
+\paragraph{libs/wb\_component.py}
+enthält Wishbone Component klasse mit:
+- wishbone componenten als superklasse
+-> generelle informationen die sich master als auch slave teilen
+-> unterklasse wishbone master mit masterspezifischen infos
+-> unterklasse wishbone slave mit slavespezifischen infos
+\paragraph{libs/wb\_intercon.py} 
+enthält intercon klasse mit:
+- generellen intercon infos
+- einem master objekt (aus wb\_component->master)
+- beliebig vielen slave objekten (aus wb\_component->slave)
+\paragraph{libs/wb\_file\_manager.py} 
+- parsen der config
+- ausgabe der aus der konfiguration gelesenen und in intercon objekt eingetragenen werte
+- generierung des intercon in VHDL
+\paragraph{libs/main.py} 
+- ausführen der funktionen in richtiger reinfolge
+- exitstatus
+- berechnungsdauer
+\subsection{Aufbau der Konfigurationsdatei}
+Erkläre sections, keys wurden bereits erklärt
+\subsection{Arbeitsweise des Generators}
+Der Generator verwendet ein WishboneIntercon Objekt (aus wb\_intercon.py), dass wie bereits bekannt alle notwendigen Informationen aus der Konfigurationsdatei enthält. Anschließend wird eine Templatedatei geöffnet, die den gesamten VHDL-Code und Platzhalter enthält. Einige Platzhalter werden immer durch Text ersetzt, da diese Zeilen im Template bei jeder Konfiguration im generierten VHDL Code enthalten sein werden. Nicht der gesamte VHDL Code kann so generiert werden, da es VHDL Code gibt der nur bei bestimmten Konfigurationen erzeugt wird (Beispielsweise 0-6 zusätzliche Signale) oder sich bei unterschiedlichen Konfigurationen unterscheidet (Beispielsweise Verschaltung der Datenleitung mit gleicher und unterschiedlicher Endianess). Der Code, der von der Struktur her nicht immer gleich bleibt, wird in Python (im Textsegment) erstellt und ersetzt anschließend die restlichen Platzhalter.
+\subsubsection{VHDL Templates}
+\paragraph{template\_intercon.tmpl}
+wofür ist das gut?
+\paragraph{template\_slave.tmpl}
+wofür ist das gut?
+\subsection{Features}
+\subsubsection{Implementiert}
+\subsubsection{Im Generator nicht Berücksichtigt}
+Einige Konfigurationsmöglichkeiten werden mit in die Objekte übernommen, allerdings nicht vom Generator berücksichtigt. Dazu zählen:\\
+Für Slaves:
+\begin{itemize}
+\item addressing\_granularity und word\_size\\
+Beschreibt, in welchem Abstand Adressen angesprochen werden können.
+Die addressing\_granularity kann byte oder word als Wert annehmen.
+Sollte word ausgewählt sein, muss man den Konfigurationsparamter word\_size 
+setzen, der den Abstand in Bits angibt. Beispiel (Adressraum: 0x0 - 0x100):\\
+addressing\_granularity = byte, Adressen 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, etc. können angesprochen werden
+addressing\_granularity = word und word\_size = 32, dann können Adressen in log2(32)=4er Schritten angesprochen werden : 0x0, 0x4, 0x8, etc.
+\end{itemize}
+Für Master und Slaves:
+\begin{itemize}
+\item data flow\\
+Gibt an, ob eine Komponente auf den Datenbus nur lesen, nur schreiben oder lesen und schreiben darf
+\end{itemize}
+\subsubsection{Nachträglich entfernt}
+\begin{itemize}
+\item datatransfer
+kann die Werte single, burst und rmw (read, modify, write) annehmen. Dieser Wert wurde auf Grund eines Missverständnisses zu Begin des Projektes anschließend im Verlauf des Projektes wieder entfernt, da das Verhalten des Intercon sich nicht dadurch beinflusst, ob die Daten einzelnt, mit bursts oder mittels rmw übertragen werden
+\end{itemize}
+\subsection{Probleme / Schwierigkeiten}
+beschreibe hier das kombinatorischer schaltkreis / latch problem
+\section{Schlusswort}
+War die vorgehensweise eine gute idee?
+was lief gut?
+was lief schlecht?
+was könnte man in zukunft ändern?
+gibt es bugs?
+\end{document}
