@@ -121,7 +121,7 @@
 \end{center}
 
 \begin{abstract}
-Kurzfassung
+Dieses Dokument beschreibt Einleitend Wishbone. Anschließend wird die Projektstruktur und die Funktion der einzelnen Komponenten beschrieben
 \end{abstract}
 \newpage
 \tableofcontents
@@ -159,14 +159,14 @@ dessen Leitungen mit den Leitungen des für die Adresse zuständigen Slaves.
 \noindent
 \shadowbox{%
 \begin{minipage}{\dimexpr\textwidth-\shadowsize-2\fboxrule-2\fboxsep}
-   \textcolor{red}{\sffamily Beispiel 1, Übungsszenario}\par\vspace{\baselineskip}
+   \textcolor{red}{\sffamily Beispiel 1: Übungsszenario}\par\vspace{\baselineskip}
 	[Master] Button-Controller \newline [Slave1] LED-Controller \newline [Slave2] RGB-LED-Controller
 \end{minipage}}
 \\\\
 \noindent
 \shadowbox{%
 \begin{minipage}{\dimexpr\textwidth-\shadowsize-2\fboxrule-2\fboxsep}
-   \textcolor{red}{\sffamily Beispiel 2, Reales Szenario}\par\vspace{\baselineskip}
+   \textcolor{red}{\sffamily Beispiel 2: Reales Szenario}\par\vspace{\baselineskip}
 	[Master] MCU \newline [Slave1] VGA-Controller \newline [Slave2] SRAM-Controller
 \end{minipage}}
 
@@ -176,6 +176,7 @@ der Informationen aus einer Konfigurationsdatei ausliest und aus
 diesen Informationen einen geeigneten Wishbone Intercon in VHDL (Hardwarebeschreibungssprache) generiert.
 Der Intercon soll in der Lage sein, einen Master und beliebig viele Slaves mit einer \glqq Point-to-Point Verbindung\grqq\ (1 Master, 1 Slave) oder einem \glqq Shared Bus\grqq\ (1 Master, n Slaves) zu verschalten.
 \subsection{Projektaufbau}
+Das Projekt basiert auf einer Python3 Anwendung, die eine Konfigurationsdatei einliest (parsed) und anschließend aus den darin enthaltenen Informationen VHDL Code erzeugt (generiert).
 Folgende Ordnerstruktur findet sich im Projektverzeichnis wieder:
 \begin{itemize}
 \item ./
@@ -227,12 +228,15 @@ Diese Datei beinhaltet die Klasse WishboneFileManager. Es ist die Klasse, die da
 Diese Datei beinhaltet die Hauptroutine, welche alle Funktionen in der richtigen Reihenfolge aufruft und zudem eine Berechnungsdauer und den Ausgangstatus auf einer Konsole ausgibt. Es ist zwingend erforderlich, das Programm mit Python 3.0 oder neuer auszuführen.\\
 Befehl in der Konsole: python3 main.py
 \subsection{Aufbau der Konfigurationsdatei}
+Das Pythonprogramm entnimmt alle Informationen über den Intercon, sowie den Master und Slave Komponenten, einer Konfigurationsdatei namens \glqq wishbone.ini\grqq .
 Die Konfigurationsdatei kann in drei Bereiche aufgeteilt werden:
 \begin{enumerate}
 \item General - enthält generelle Informationen über den Wishbone Intercon
 \item Master - enthält Informationen über den Wishbone Master
 \item Slave(n) - enthält Informationen über den Wishbone Slave mit der nummer \glqq n\grqq
 \end{enumerate}
+\newpage
+\paragraph{Bereich: General}\nl
 \begin{lstlisting}[language={Ini},frame=single]
 # --------------------- General configuration ---------------------
 # List of keywords for general configuration
@@ -251,6 +255,9 @@ tgd_bits = 3
 data_bus_width = 32
 address_bus_width = 32
 \end{lstlisting}
+Die generellen Informationen geben, abgesehen vom Namen, an, wie Breit (in Bits) die Leitungen zwischen Master und Slave Komponenten im Intercon sind. Die Leitungen im Intercon können durchaus breiter sein als die des Masters oder der Slaves.
+\newpage
+\paragraph{Bereich: Master}\nl
 \begin{lstlisting}[language={Ini},frame=single]
 # --------------------- (single) Master component ---------------------
 
@@ -285,7 +292,17 @@ tga = true
 tgc = true
 tgd = true
 \end{lstlisting}
-
+Der Master lässt sich hinsichtlich 
+\begin{itemize}
+\item seines Namens
+\item der Breite des Daten- und Adressbusses (in Bits)
+\item der Position des most-significant Bits (endianess)
+\item der Lese- und Schreibberechtigung auf den Datenbus
+\item zusätzlicher Signale (err, rty, tga, tgc, tgd)
+\end{itemize}
+konfigurieren.
+\newpage
+\paragraph{Bereich: Slave}\nl
 \begin{lstlisting}[language={Ini},frame=single]
 # --------------------- Slave components ---------------------
 
@@ -336,32 +353,43 @@ tga = false
 tgc = false
 tgd = false
 \end{lstlisting}
+Slaves lassen sich hinsichtlich
+\begin{itemize}
+\item ihres Namens
+\item der Datenbusbreite (in Bits)
+\item der Position des most-significant Bits (endianess)
+\item des höchstwertistgen und des niederwertigsten relevanten Bit der Adressleitung
+\item der Adressierungspräzision
+\item der Lese- und Schreibberechtigung auf den Datenbus
+\item der zusätzlichen Signale (err, rty, tga, tgc, tgd)
+\end{itemize}
+konfigurieren.
 \subsection{Arbeitsweise des Generators}
-Der Generator verwendet ein WishboneIntercon Objekt (aus wb\_intercon.py), dass wie bereits bekannt alle notwendigen Informationen aus der Konfigurationsdatei enthält. Anschließend wird eine Templatedatei geöffnet, die den gesamten VHDL-Code und Platzhalter enthält. Einige Platzhalter werden immer durch Text ersetzt, da diese Zeilen im Template bei jeder Konfiguration im generierten VHDL Code enthalten sein werden. Nicht der gesamte VHDL Code kann so generiert werden, da es VHDL Code gibt der nur bei bestimmten Konfigurationen erzeugt wird (Beispielsweise 0-6 zusätzliche Signale) oder sich bei unterschiedlichen Konfigurationen unterscheidet (Beispielsweise Verschaltung der Datenleitung mit gleicher und unterschiedlicher Endianess). Der Code, der von der Struktur her nicht immer gleich bleibt, wird in Python (im Textsegment) erstellt und ersetzt anschließend die restlichen Platzhalter.
+Der Generator verwendet ein WishboneIntercon Objekt (aus wb\_intercon.py), dass wie bereits bekannt alle notwendigen Informationen aus der Konfigurationsdatei enthält. Anschließend wird eine Templatedatei geöffnet, die strukturell den gesamten VHDL-Code und Platzhalter enthält. Einige Platzhalter werden immer durch Text ersetzt, da diese Zeilen im Template bei jeder Konfiguration im generierten VHDL Code enthalten sein werden. Nicht der gesamte VHDL Code kann so generiert werden, da es VHDL Code gibt der nur bei bestimmten Konfigurationen erzeugt wird (Beispielsweise 0-6 zusätzliche Signale) oder sich bei unterschiedlichen Konfigurationen unterscheidet (Beispielsweise Verschaltung der Datenleitung mit gleicher und unterschiedlicher Endianess). Der Code, der von der Struktur her nicht immer gleich bleibt, wird in Python erstellt und nachträglich hinzugefügt.
 \subsubsection{VHDL Templates}
-\paragraph{template\_intercon.tmpl}
-wofür ist das gut?
-\paragraph{template\_slave.tmpl}
-wofür ist das gut?
+\paragraph{template\_intercon.tmpl}\nl
+Diese Templatedatei enthält die gesamte VHDL Codestruktur mit Platzhaltern. In ihr sind die Portdefinitionen des Masters, ein Platzhalter für alle Portdefinitionen der Slaves, die Signalerstellung- und Zuweisung für feste als auch optionale Signale und der strukturelle Programmfluss mit Platzhaltern enthalten. Die Platzhalter für optionale Funktionalität werden im Pythoncode ersetzt, da der Aufbau erst zur Laufzeit des Programs (nach einlesen der Konfigurationsdatei) bekannt ist. Der Platzhalter \glqq \%slaves\%\grqq in der Portdefinition wird durch die Portdefinition aller Slaves ersetzt. Da erst zur Laufzeit bekannt ist, wieviele Slaves es geben wird, kann die Portdefinition für die Slaves erst zur Laufzeit des Programms erstellt werden. Für jeden Slave wird eine Kopie des Inhalts aus der Datei \glqq template\_slave.tmpl\grqq modifiziert und anschließend der Portdefinition beigefügt.
+\paragraph{template\_slave.tmpl}\nl
+Diese Templatedatei ist entstanden, da es eine beliebige Anzahl an Slaves geben kann und die Portdefinition beliebig oft benötigt wird. Sie enthält lediglich die Portdefinition der Leitungen die zwingend vorhanden sein müssen und einen Platzhalter für die optionalen Leitungen.
 \subsection{Programmfluss}
 Alle Module mit Assoiziationspfeilen zeichen, module im nächsten kapitel erklären (AKTIVITÄTSDIAGRAMM?)\\
 Dateipfade angeben
 
 WICHTIG: Programm main.py muss mit python3 ausgeführt werden (NICHT python)
-\subsection{Features}
-Im folgenden werden die Funktionen des Intercon Generators dargelegt.
-\subsubsection{Implementiert}
+\subsection{Fehlende Features}
 \subsubsection{Im Generator nicht Berücksichtigt}
-Einige Konfigurationsmöglichkeiten werden mit in die Objekte (WishboneMaster, WishboneSlave, WishboneIntercon) übernommen, allerdings nicht vom Generator berücksichtigt. Dazu zählen:\\
+Einige Konfigurationsmöglichkeiten werden mit in die Objekte (WishboneMaster, WishboneSlave, WishboneIntercon) übernommen, allerdings nicht vom Generator berücksichtigt. Dazu zählen:\\\\
 Für Slaves:
 \begin{itemize}
 \item addressing\_granularity und word\_size\\
-Beschreibt, in welchem Abstand Adressen angesprochen werden können.
-Die addressing\_granularity kann byte oder word als Wert annehmen.
-Sollte word ausgewählt sein, muss man den Konfigurationsparamter word\_size 
-setzen, der den Abstand in Bits angibt. Beispiel (Adressraum: 0x0 - 0x100):\\
-addressing\_granularity = byte, Adressen 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, etc. können angesprochen werden
-addressing\_granularity = word und word\_size = 32, dann können Adressen in log2(32)=4er Schritten angesprochen werden : 0x0, 0x4, 0x8, etc.
+Beschreibt, in welchem Abstand Adressen angesprochen werden können.\\
+\noindent
+\shadowbox{%
+\begin{minipage}{\dimexpr\textwidth-\shadowsize-2\fboxrule-2\fboxsep}
+   \textcolor{red}{\sffamily Beispiel (Adressraum: 0x0 - 0x100):}\par\vspace{\baselineskip}
+addressing\_granularity = byte, Adressen 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, etc. können angesprochen werden\\\\
+addressing\_granularity = word und word\_size = 32, Adressen können in log2(32)=4er Schritten angesprochen werden: 0x0, 0x4, 0x8, etc.
+\end{minipage}}
 \end{itemize}
 Für Master und Slaves:
 \begin{itemize}
@@ -374,15 +402,15 @@ Gibt an, ob eine Komponente auf den Datenbus nur lesen, nur schreiben oder lesen
 kann die Werte single, burst und rmw (read, modify, write) annehmen. Dieser Wert wurde auf Grund eines Missverständnisses zu Begin des Projektes anschließend im Verlauf des Projektes wieder entfernt, da das Verhalten des Intercon sich nicht dadurch beinflusst, ob die Daten einzelnt, mit bursts oder mittels rmw übertragen werden
 \end{itemize}
 \subsection{Probleme / Schwierigkeiten}
-Ohne jemals etwas über die Arbeitsweise von Bussystemen gehört zu haben, ist es sehr Schwierig zu verstehen was in einem Wishbone Bussystem genau geschieht. Das offizielle Wishbone Referenzdokument \glqq Wishbone B4 \grqq war im laufe des Projektes die Hauptreferenzquelle. An der Stelle ist es wichtig zu erwähnen das der Autor des Dokuments hervorragende Arbeit geleistet hat. Schon Bald wurde klar, was in einem Wishbone Bussystem geschieht und wie die Komponenten miteinander kommunizieren, allerdings war eine lang anhaltende Schwierigkeit zu differenzen, welche Aufgaben in den Wishbone Modulen und welche Aufgaben in dem Wishbone Intercon durchgeführt werden. Hierbei hat sehr geholfen, sich bestehende Intercons anzuschauen und bereits bestehende Intercon Generatoren und deren generierten Code zu analyisieren. \\
+Ohne jemals etwas über die Arbeitsweise von Bussystemen gehört zu haben, ist es sehr Schwierig zu verstehen, was in einem Wishbone Bussystem genau geschieht. Das offizielle Wishbone Referenzdokument \glqq Wishbone B4\grqq\ war im laufe des Projektes die Hauptreferenzquelle. An der Stelle ist es wichtig zu erwähnen, dass der Autor des Dokuments hervorragende Arbeit geleistet hat. Schon Bald wurde klar, was in einem Wishbone Bussystem geschieht und wie die Komponenten miteinander kommunizieren, allerdings war eine lang anhaltende Schwierigkeit zu differenzen, welche Aufgaben in den Wishbone Modulen und welche Aufgaben in dem Wishbone Intercon durchgeführt werden. Hierbei hat sehr geholfen, sich bestehende Intercons anzuschauen und bereits bestehende Intercon Generatoren und deren generierten Code zu analyisieren. \\
 Ein weitere Schwierigkeit ist es, mit einem Programm, das VHDL Quelltext generieren soll, einen rein kombinatorischen Schaltkreis ohne Latches zu erstellen. Da sich der generierte VHDL Code je nach Konfiguration verändert, verändern sich auch die Signalzuweisungen, die man zu beachten hat um den Schaltkreis kombinatorisch zu gestalten. Es ist in diesem Projekt nicht gelungen, einen Generator zu schreiben, der in allen Fällen einen VHDL Code generiert, welcher einen rein kombinatorischen Schaltkreis beschreibt.
 \section{Schlusswort}
-\paragraph{War die Vorgehensweise rückblickend gut?}
-Die Vorgehensweise in Python einen Parser und Generator (in dieser Reihenfolge) zu schreiben, war weder eine besonders hervorragende, noch eine besonders schlechte Idee. Der Zusatzaufwand, der erforderlich ist um einen Parser und einen Generator zu schreiben, ist nicht außer acht zu lassen. Für diese Zwecke ist Python jedoch geeignet. Der Parser und der Generator machen den kleineren Teil aus, der größte Teil ist die Erstellung und Validierung der Objekte, bevor diese von der Generatorprozedur verwendet werden. Wäre das Projekt größer und der zu generierende Code von weiteren Bedingungen abhängig (= größeres Regelwerk für den Generator), so wird der Generator in Python unüberschaubar und nicht wartbar. Für einen Generator wie in diesem Pythonprojekt, der nur ein sehr kleines Regelwerk benötigt, wird es schon langsam unüberschaubar. Ohne Wissen über Compilerbau ist diese Vorgehensweise jedoch ein gutes Training, einen Teil der Probleme, die Generatoren zu behandeln haben, genauer kennen zu lernen.
+\paragraph{War die Vorgehensweise rückblickend gut?}\nl
+Die Vorgehensweise, in Python einen Parser und Generator (in dieser Reihenfolge) zu schreiben, ist weder eine besonders hervorragende, noch eine besonders schlechte Idee. Der Zusatzaufwand, der erforderlich ist um einen Parser und einen Generator zu schreiben, ist nicht außer acht zu lassen. Für diese Zwecke ist Python jedoch geeignet. Der Parser und der Generator machen den kleineren Teil aus, der größte Teil ist die Erstellung und Validierung der Objekte, bevor diese von der Generatorprozedur verwendet werden. Wäre das Projekt größer und der zu generierende Code von weiteren Bedingungen abhängig (= größeres Regelwerk für den Generator), so wird der Generator in Python unüberschaubar und nicht wartbar. Für einen Generator wie in diesem Pythonprojekt, der nur ein sehr kleines Regelwerk benötigt, wird es schon langsam unüberschaubar. Ohne Wissen über Compilerbau ist diese Vorgehensweise jedoch ein gutes Training, einen Teil der Probleme, die Generatoren zu behandeln haben, genauer kennen zu lernen.
 Eine Alternative ist, bereits bestehende Code Generatoren zu verwenden, was einen wesentlichen Anteil and Programmcode spart und das Projekt leichter wartbar macht. Um einen solchen Generator genannt zu haben, \glqq GSL Universal Code Generator \grqq bietet die Möglichkeit \glqq Für alle Sprachen und alle Zwecke \grqq (Zitat aus der Dokumentation des Generators) Code zu generieren.
-\paragraph{was lief gut?}
-\paragraph{was lief schlecht?}
-\paragraph{Bekannte Bugs}
-
-Abschließend muss erwähnt werden, dass das Wissen das bei der Erstellung eines solchen Projektes über Parser, Generatoren, VHDL (oder) und vor allen Dingen Bussystemen, von großem Wert ist. Für das weitere Hardwarenahe Arbeiten ist das Wissen über Bussysteme von großer Bedeutung und beinahe unvermeidbar. Für das weitere Arbeiten mit FPGAs ist das Wissen über die Umsetzung von VHDL-Strukturen in Hardware von großer Wichtigkeit. Und Falls jemals wieder Code generiert werden muss, so ist nun klar, das nächstes mal ein Generatortool dafür verwendet wird oder ein spezielles Generatortool, erst nach Aneignung einigen Wissens über Compilerbau, entwickelt wird.
+\paragraph{was lief gut?}\nl
+\paragraph{was lief schlecht?}\nl
+\paragraph{Bekannte Bugs}\nl
+\nl\nl
+Abschließend muss erwähnt werden, dass das Wissen das bei der Erstellung eines solchen Projektes über Parser, Generatoren, VHDL und vor allen Dingen Bussystemen, von großem Wert ist. Für das weitere Hardwarenahe Arbeiten ist das Wissen über Bussysteme von großer Bedeutung und beinahe unvermeidbar. Für das weitere Arbeiten mit FPGAs ist das Wissen über die Umsetzung von VHDL-Strukturen in Hardware von großer Wichtigkeit. Und Falls jemals wieder Code generiert werden muss, so ist nun klar, das nächstes mal ein Generatortool dafür verwendet wird oder ein spezielles Generatortool, erst nach Aneignung einigen Wissens über Compilerbau, entwickelt wird.
 \end{document}

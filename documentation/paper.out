@@ -9,9 +9,8 @@
 \BOOKMARK [2][-]{subsection.2.4}{Arbeitsweise des Generators}{section.2}% 9
 \BOOKMARK [3][-]{subsubsection.2.4.1}{VHDL Templates}{subsection.2.4}% 10
 \BOOKMARK [2][-]{subsection.2.5}{Programmfluss}{section.2}% 11
-\BOOKMARK [2][-]{subsection.2.6}{Features}{section.2}% 12
-\BOOKMARK [3][-]{subsubsection.2.6.1}{Implementiert}{subsection.2.6}% 13
-\BOOKMARK [3][-]{subsubsection.2.6.2}{Im Generator nicht Ber\374cksichtigt}{subsection.2.6}% 14
-\BOOKMARK [3][-]{subsubsection.2.6.3}{Nachtr\344glich entfernt}{subsection.2.6}% 15
-\BOOKMARK [2][-]{subsection.2.7}{Probleme / Schwierigkeiten}{section.2}% 16
-\BOOKMARK [1][-]{section.3}{Schlusswort}{}% 17
+\BOOKMARK [2][-]{subsection.2.6}{Fehlende Features}{section.2}% 12
+\BOOKMARK [3][-]{subsubsection.2.6.1}{Im Generator nicht Ber\374cksichtigt}{subsection.2.6}% 13
+\BOOKMARK [3][-]{subsubsection.2.6.2}{Nachtr\344glich entfernt}{subsection.2.6}% 14
+\BOOKMARK [2][-]{subsection.2.7}{Probleme / Schwierigkeiten}{section.2}% 15
+\BOOKMARK [1][-]{section.3}{Schlusswort}{}% 16
