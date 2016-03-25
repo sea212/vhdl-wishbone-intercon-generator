@@ -64,9 +64,9 @@ begin
     %mname%_ack_i <= ack;%additional_assignments%
 
     -- interconnect
-    interconnect : process (clk_i, rst_i, adr, %mname%_cyc_o)
+    interconnect : process (rst_i, adr, %mname%_cyc_o)
     begin
-        if (rising_edge(clk_i)) then
+        --if (rising_edge(clk_i)) then
             if (rst_i = '1') then
                 --synchronous reset
                 stb <= '0';
@@ -82,8 +82,8 @@ begin
                 else%antilatch2%
                 end if;
             end if;
-        else
-            null;
-        end if;
+        --else
+            --null;
+        --end if;
     end process interconnect;
 end Behavioral;
